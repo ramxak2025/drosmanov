@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
+import { hashValue } from '../common/utils/crypto.util';
 
 @Injectable()
 export class StaffManagementService {
@@ -22,9 +23,12 @@ export class StaffManagementService {
   }
 
   async create(dto: CreateStaffDto) {
+    const passwordHash = await hashValue(dto.password);
+
     return this.prisma.user.create({
       data: {
         phone: dto.phone,
+        passwordHash,
         name: dto.name,
         role: 'STAFF',
         staffProfile: {
@@ -33,6 +37,9 @@ export class StaffManagementService {
             bio: dto.bio,
             salary: dto.salary || 0,
             workSchedule: dto.workSchedule || null,
+            canManageServices: dto.canManageServices || false,
+            canManageSchedule: dto.canManageSchedule || false,
+            canManagePromotions: dto.canManagePromotions || false,
           },
         },
       },
@@ -48,6 +55,9 @@ export class StaffManagementService {
     if (dto.bio !== undefined) staffData.bio = dto.bio;
     if (dto.salary !== undefined) staffData.salary = dto.salary;
     if (dto.workSchedule !== undefined) staffData.workSchedule = dto.workSchedule;
+    if (dto.canManageServices !== undefined) staffData.canManageServices = dto.canManageServices;
+    if (dto.canManageSchedule !== undefined) staffData.canManageSchedule = dto.canManageSchedule;
+    if (dto.canManagePromotions !== undefined) staffData.canManagePromotions = dto.canManagePromotions;
 
     if (dto.name) {
       await this.prisma.user.update({

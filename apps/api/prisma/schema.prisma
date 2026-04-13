@@ -14,6 +14,7 @@ datasource db {
 model User {
   id           String   @id @default(uuid())
   phone        String   @unique
+  passwordHash String   @default("")
   name         String   @default("")
   role         Role     @default(CLIENT)
   isActive     Boolean  @default(true)
@@ -48,6 +49,9 @@ model Staff {
   workSchedule   Json?
   isActive       Boolean @default(true)
   telegramChatId String?
+  canManageServices Boolean @default(false)
+  canManageSchedule Boolean @default(false)
+  canManagePromotions Boolean @default(false)
 
   appointments Appointment[]
   documents    Document[]
@@ -124,6 +128,7 @@ model Service {
   price       Float
   duration    Int
   category    String
+  photoPath   String?
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
@@ -133,6 +138,26 @@ model Service {
 
   @@index([category])
   @@index([isActive])
+}
+
+// ─────────────────────────────────────────────
+// PROMOTIONS (АКЦИИ)
+// ─────────────────────────────────────────────
+
+model Promotion {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  photoPath   String?
+  discount    Float?
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([endDate])
 }
 
 // ─────────────────────────────────────────────

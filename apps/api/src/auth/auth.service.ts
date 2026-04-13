@@ -1,107 +1,65 @@
 import {
   Injectable,
   UnauthorizedException,
-  HttpException,
-  HttpStatus,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { SmsService } from '../notifications/sms.service';
 import { hashValue, compareHash } from '../common/utils/crypto.util';
-import { maskIp } from '../common/utils/mask.util';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private smsService: SmsService,
   ) {}
 
-  async sendOtp(phone: string, ip: string): Promise<void> {
+  async login(phone: string, password: string) {
     const normalizedPhone = this.normalizePhone(phone);
 
-    // Rate limit: max 3 OTPs per phone per hour
-    const recentOtps = await this.prisma.otpCode.count({
-      where: {
-        phone: normalizedPhone,
-        createdAt: { gte: new Date(Date.now() - 3600_000) },
-      },
-    });
-    if (recentOtps >= 3) {
-      throw new HttpException(
-        'Превышен лимит OTP. Попробуйте через час.',
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-
-    const code = String(Math.floor(1000 + Math.random() * 9000));
-    const codeHash = await hashValue(code);
-
-    await this.prisma.otpCode.create({
-      data: {
-        phone: normalizedPhone,
-        codeHash,
-        expiresAt: new Date(Date.now() + 10 * 60_000),
-        ipAddress: maskIp(ip),
-      },
-    });
-
-    await this.smsService.sendOtp(normalizedPhone, code);
-  }
-
-  async verifyOtp(phone: string, code: string, name?: string) {
-    const normalizedPhone = this.normalizePhone(phone);
-
-    const otpRecord = await this.prisma.otpCode.findFirst({
-      where: {
-        phone: normalizedPhone,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!otpRecord) {
-      throw new UnauthorizedException('Код недействителен или истёк');
-    }
-
-    if (otpRecord.attempts >= 3) {
-      throw new UnauthorizedException('Превышено количество попыток');
-    }
-
-    // Increment attempts BEFORE checking (timing attack prevention)
-    await this.prisma.otpCode.update({
-      where: { id: otpRecord.id },
-      data: { attempts: { increment: 1 } },
-    });
-
-    const isValid = await compareHash(code, otpRecord.codeHash);
-    if (!isValid) {
-      throw new UnauthorizedException('Неверный код');
-    }
-
-    await this.prisma.otpCode.update({
-      where: { id: otpRecord.id },
-      data: { used: true },
-    });
-
-    let user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { phone: normalizedPhone },
     });
 
-    if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          phone: normalizedPhone,
-          name: name || '',
-          role: 'CLIENT',
-          clientProfile: { create: {} },
-        },
-        include: { clientProfile: true },
-      });
+    if (!user || !user.passwordHash) {
+      throw new UnauthorizedException('Неверный телефон или пароль');
     }
+
+    const isValid = await compareHash(password, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Неверный телефон или пароль');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Аккаунт деактивирован');
+    }
+
+    return this.issueTokens(user);
+  }
+
+  async register(phone: string, password: string, name?: string) {
+    const normalizedPhone = this.normalizePhone(phone);
+
+    const existing = await this.prisma.user.findUnique({
+      where: { phone: normalizedPhone },
+    });
+
+    if (existing) {
+      throw new ConflictException('Пользователь с таким номером уже существует');
+    }
+
+    const passwordHash = await hashValue(password);
+
+    const user = await this.prisma.user.create({
+      data: {
+        phone: normalizedPhone,
+        passwordHash,
+        name: name || '',
+        role: 'CLIENT',
+        clientProfile: { create: {} },
+      },
+    });
 
     return this.issueTokens(user);
   }
@@ -131,7 +89,6 @@ export class AuthService {
       throw new UnauthorizedException('Недействительный refresh token');
     }
 
-    // Revoke old token (rotation)
     await this.prisma.refreshToken.update({
       where: { id: matchedToken.id },
       data: { isRevoked: true },

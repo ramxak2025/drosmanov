@@ -1,9 +1,14 @@
-import { IsString, IsOptional, IsNumber, IsObject, Matches, MaxLength, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsObject, IsBoolean, Matches, MaxLength, Min, MinLength } from 'class-validator';
 
 export class CreateStaffDto {
   @IsString()
   @Matches(/^\+7\d{10}$/, { message: 'Телефон должен быть в формате +7XXXXXXXXXX' })
   phone: string;
+
+  @IsString()
+  @MinLength(4)
+  @MaxLength(100)
+  password: string;
 
   @IsString()
   @MaxLength(200)
@@ -26,4 +31,16 @@ export class CreateStaffDto {
   @IsOptional()
   @IsObject()
   workSchedule?: Record<string, { start: string; end: string } | null>;
+
+  @IsOptional()
+  @IsBoolean()
+  canManageServices?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  canManageSchedule?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  canManagePromotions?: boolean;
 }

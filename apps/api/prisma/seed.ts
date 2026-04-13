@@ -3,6 +3,10 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 12);
+}
+
 async function main() {
   console.log('Seeding database...');
 
@@ -20,23 +24,26 @@ async function main() {
     },
   });
 
-  // 2. Owner
+  // 2. Owner — пароль: owner123
   const owner = await prisma.user.upsert({
     where: { phone: '+79001234567' },
     update: {},
     create: {
       phone: '+79001234567',
+      passwordHash: await hashPassword('owner123'),
       name: 'Османов Рамазан Магомедович',
       role: 'OWNER',
     },
   });
 
-  // 3. Staff
-  const staff1 = await prisma.user.upsert({
+  // 3. Staff — каждый со своим паролем
+  // Терапевт — пароль: staff111
+  await prisma.user.upsert({
     where: { phone: '+79007654321' },
     update: {},
     create: {
       phone: '+79007654321',
+      passwordHash: await hashPassword('staff111'),
       name: 'Иванова Анна Сергеевна',
       role: 'STAFF',
       staffProfile: {
@@ -44,6 +51,8 @@ async function main() {
           specialty: 'Терапевт',
           bio: 'Стаж 10 лет. Специализация: лечение кариеса, пульпита.',
           salary: 80000,
+          canManageServices: true,
+          canManagePromotions: true,
           workSchedule: {
             mon: { start: '09:00', end: '18:00' },
             tue: { start: '09:00', end: '18:00' },
@@ -58,11 +67,13 @@ async function main() {
     },
   });
 
-  const staff2 = await prisma.user.upsert({
+  // Хирург — пароль: staff222
+  await prisma.user.upsert({
     where: { phone: '+79003334455' },
     update: {},
     create: {
       phone: '+79003334455',
+      passwordHash: await hashPassword('staff222'),
       name: 'Петров Константин Владимирович',
       role: 'STAFF',
       staffProfile: {
@@ -70,6 +81,7 @@ async function main() {
           specialty: 'Хирург',
           bio: 'Стаж 15 лет. Удаление, имплантация.',
           salary: 100000,
+          canManageSchedule: true,
           workSchedule: {
             mon: { start: '10:00', end: '19:00' },
             tue: null,
@@ -84,11 +96,13 @@ async function main() {
     },
   });
 
-  const staff3 = await prisma.user.upsert({
+  // Ортодонт — пароль: staff333
+  await prisma.user.upsert({
     where: { phone: '+79009876543' },
     update: {},
     create: {
       phone: '+79009876543',
+      passwordHash: await hashPassword('staff333'),
       name: 'Сидорова Мария Игоревна',
       role: 'STAFF',
       staffProfile: {
@@ -110,7 +124,7 @@ async function main() {
     },
   });
 
-  // 4. Clients
+  // 4. Clients — каждый с паролем client123
   const clientPhones = [
     { phone: '+79001111111', name: 'Магомедов Рамазан Ахмедович' },
     { phone: '+79002222222', name: 'Алиева Фатима Расуловна' },
@@ -124,12 +138,15 @@ async function main() {
     { phone: '+79001010101', name: 'Магомедова Хадижат Ибрагимовна' },
   ];
 
+  const clientPasswordHash = await hashPassword('client123');
+
   for (const c of clientPhones) {
     await prisma.user.upsert({
       where: { phone: c.phone },
       update: {},
       create: {
         phone: c.phone,
+        passwordHash: clientPasswordHash,
         name: c.name,
         role: 'CLIENT',
         clientProfile: {
@@ -145,25 +162,55 @@ async function main() {
 
   // 5. Services
   const services = [
-    { name: 'Лечение кариеса', price: 3000, duration: 60, category: 'Терапия', sortOrder: 1 },
-    { name: 'Лечение пульпита', price: 7000, duration: 90, category: 'Терапия', sortOrder: 2 },
-    { name: 'Удаление зуба простое', price: 3500, duration: 30, category: 'Хирургия', sortOrder: 1 },
-    { name: 'Удаление зуба сложное', price: 6000, duration: 60, category: 'Хирургия', sortOrder: 2 },
-    { name: 'Профессиональная чистка', price: 5000, duration: 60, category: 'Гигиена', sortOrder: 1 },
-    { name: 'Отбеливание', price: 15000, duration: 90, category: 'Гигиена', sortOrder: 2 },
-    { name: 'Консультация ортодонта', price: 1500, duration: 30, category: 'Ортодонтия', sortOrder: 1 },
-    { name: 'Установка брекетов', price: 45000, duration: 120, category: 'Ортодонтия', sortOrder: 2 },
-    { name: 'Консультация имплантолога', price: 0, duration: 30, category: 'Имплантация', sortOrder: 1, description: 'Бесплатная консультация' },
-    { name: 'Установка импланта', price: 60000, duration: 120, category: 'Имплантация', sortOrder: 2 },
-    { name: 'Виниры', price: 25000, duration: 90, category: 'Эстетика', sortOrder: 1 },
-    { name: 'Реставрация зуба', price: 8000, duration: 60, category: 'Эстетика', sortOrder: 2 },
-    { name: 'Панорамный снимок', price: 1500, duration: 15, category: 'Терапия', sortOrder: 3 },
-    { name: 'Установка коронки', price: 18000, duration: 60, category: 'Эстетика', sortOrder: 3 },
-    { name: 'Лечение дёсен', price: 4000, duration: 45, category: 'Терапия', sortOrder: 4 },
+    { name: 'Лечение кариеса', description: 'Лечение кариеса любой сложности с использованием современных материалов', price: 3000, duration: 60, category: 'Терапия', sortOrder: 1 },
+    { name: 'Лечение пульпита', description: 'Эндодонтическое лечение каналов зуба', price: 7000, duration: 90, category: 'Терапия', sortOrder: 2 },
+    { name: 'Удаление зуба простое', description: 'Удаление подвижного или однокорневого зуба', price: 3500, duration: 30, category: 'Хирургия', sortOrder: 1 },
+    { name: 'Удаление зуба сложное', description: 'Удаление ретинированного или многокорневого зуба', price: 6000, duration: 60, category: 'Хирургия', sortOrder: 2 },
+    { name: 'Профессиональная чистка', description: 'Ультразвуковая чистка + Air Flow + полировка', price: 5000, duration: 60, category: 'Гигиена', sortOrder: 1 },
+    { name: 'Отбеливание', description: 'Профессиональное отбеливание ZOOM', price: 15000, duration: 90, category: 'Гигиена', sortOrder: 2 },
+    { name: 'Консультация ортодонта', description: 'Осмотр, план лечения, фотопротокол', price: 1500, duration: 30, category: 'Ортодонтия', sortOrder: 1 },
+    { name: 'Установка брекетов', description: 'Металлические или керамические брекеты на одну челюсть', price: 45000, duration: 120, category: 'Ортодонтия', sortOrder: 2 },
+    { name: 'Консультация имплантолога', description: 'Бесплатная консультация с КТ-снимком', price: 0, duration: 30, category: 'Имплантация', sortOrder: 1 },
+    { name: 'Установка импланта', description: 'Установка импланта Straumann / Osstem', price: 60000, duration: 120, category: 'Имплантация', sortOrder: 2 },
+    { name: 'Виниры', description: 'Керамические виниры E.max за единицу', price: 25000, duration: 90, category: 'Эстетика', sortOrder: 1 },
+    { name: 'Реставрация зуба', description: 'Художественная реставрация композитом', price: 8000, duration: 60, category: 'Эстетика', sortOrder: 2 },
+    { name: 'Панорамный снимок', description: 'ОПТГ — панорамный рентген всех зубов', price: 1500, duration: 15, category: 'Терапия', sortOrder: 3 },
+    { name: 'Установка коронки', description: 'Металлокерамическая или циркониевая коронка', price: 18000, duration: 60, category: 'Эстетика', sortOrder: 3 },
+    { name: 'Лечение дёсен', description: 'Лечение гингивита и пародонтита', price: 4000, duration: 45, category: 'Терапия', sortOrder: 4 },
   ];
 
   for (const s of services) {
     await prisma.service.create({ data: s });
+  }
+
+  // 6. Promotions (Акции)
+  const now = new Date();
+  const promotions = [
+    {
+      title: 'Бесплатная консультация',
+      description: 'При первом посещении — бесплатная консультация и составление плана лечения для всех новых пациентов.',
+      discount: null,
+      startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+      endDate: new Date(now.getFullYear(), now.getMonth() + 3, 0),
+    },
+    {
+      title: 'Скидка 20% на чистку зубов',
+      description: 'Профессиональная гигиена полости рта со скидкой 20%. Ультразвук + Air Flow + полировка.',
+      discount: 20,
+      startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+      endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+    },
+    {
+      title: 'Семейная скидка 15%',
+      description: 'При записи двух и более членов семьи — скидка 15% на все услуги.',
+      discount: 15,
+      startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+      endDate: new Date(now.getFullYear(), now.getMonth() + 2, 0),
+    },
+  ];
+
+  for (const p of promotions) {
+    await prisma.promotion.create({ data: p });
   }
 
   // Get created entities for appointments
@@ -171,9 +218,7 @@ async function main() {
   const allClients = await prisma.client.findMany();
   const allServices = await prisma.service.findMany();
 
-  // 6. Appointments (30 - mix of statuses, past and future)
-  const statuses = ['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'] as const;
-
+  // 7. Appointments
   for (let i = 0; i < 30; i++) {
     const isPast = i < 20;
     const daysOffset = isPast ? -(Math.floor(Math.random() * 60) + 1) : Math.floor(Math.random() * 14) + 1;
@@ -186,8 +231,8 @@ async function main() {
     endDate.setMinutes(endDate.getMinutes() + service.duration);
 
     const status = isPast
-      ? (['COMPLETED', 'COMPLETED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'][Math.floor(Math.random() * 5)] as typeof statuses[number])
-      : (['PENDING', 'CONFIRMED'][Math.floor(Math.random() * 2)] as typeof statuses[number]);
+      ? (['COMPLETED', 'COMPLETED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'][Math.floor(Math.random() * 5)] as 'COMPLETED' | 'CANCELLED' | 'NO_SHOW')
+      : (['PENDING', 'CONFIRMED'][Math.floor(Math.random() * 2)] as 'PENDING' | 'CONFIRMED');
 
     await prisma.appointment.create({
       data: {
@@ -204,20 +249,19 @@ async function main() {
     });
   }
 
-  // 7. Payments for COMPLETED appointments
+  // 8. Payments for COMPLETED
   const completedAppointments = await prisma.appointment.findMany({
     where: { status: 'COMPLETED' },
-    include: { service: true, client: true },
+    include: { service: true },
   });
 
   for (const apt of completedAppointments) {
     const bonusEarned = Math.floor(apt.service.price * 0.05);
-
     await prisma.payment.create({
       data: {
         appointmentId: apt.id,
         amount: apt.service.price,
-        method: ['CASH', 'CARD', 'CASH', 'CARD'][Math.floor(Math.random() * 4)] as 'CASH' | 'CARD',
+        method: (['CASH', 'CARD'] as const)[Math.floor(Math.random() * 2)],
         status: 'PAID',
         bonusUsed: 0,
         bonusEarned,
@@ -226,7 +270,7 @@ async function main() {
     });
   }
 
-  // 8. MedRecords
+  // 9. MedRecords
   const diagnoses = [
     { diagnosis: 'Кариес 36 зуба', treatment: 'Пломбирование композитом', teeth: { '36': 'filled' } },
     { diagnosis: 'Пульпит 24 зуба', treatment: 'Эндодонтическое лечение, пломба', teeth: { '24': 'filled' } },
@@ -247,39 +291,42 @@ async function main() {
     });
   }
 
-  // 9. Audit log samples
+  // 10. Audit log samples
   await prisma.auditLog.create({
-    data: {
-      userId: owner.id,
-      action: 'POST /api/services',
-      entity: 'services',
-      newValue: { name: 'Лечение кариеса', price: 3000 },
-    },
+    data: { userId: owner.id, action: 'POST /api/services', entity: 'services', newValue: { name: 'Лечение кариеса', price: 3000 } },
   });
 
-  await prisma.auditLog.create({
-    data: {
-      userId: owner.id,
-      action: 'PATCH /api/settings',
-      entity: 'settings',
-      newValue: { bonusPercent: 5 },
-    },
-  });
-
-  console.log('Seeding completed!');
   console.log('');
-  console.log('=== Учётные данные (для OTP входа) ===');
-  console.log('Owner:   +79001234567');
-  console.log('Staff 1: +79007654321 (Терапевт Иванова А.С.)');
-  console.log('Staff 2: +79003334455 (Хирург Петров К.В.)');
-  console.log('Staff 3: +79009876543 (Ортодонт Сидорова М.И.)');
-  console.log('Client 1: +79001111111 (Магомедов Рамазан А.)');
-  console.log('=======================================');
+  console.log('========================================');
+  console.log('   SEED COMPLETED SUCCESSFULLY!');
+  console.log('========================================');
+  console.log('');
+  console.log('  ТЕСТОВЫЕ АККАУНТЫ:');
+  console.log('  ──────────────────────────────────');
+  console.log('  ВЛАДЕЛЕЦ:');
+  console.log('    Телефон: +79001234567');
+  console.log('    Пароль:  owner123');
+  console.log('');
+  console.log('  СОТРУДНИКИ:');
+  console.log('    Иванова А.С. (Терапевт)');
+  console.log('    Телефон: +79007654321');
+  console.log('    Пароль:  staff111');
+  console.log('');
+  console.log('    Петров К.В. (Хирург)');
+  console.log('    Телефон: +79003334455');
+  console.log('    Пароль:  staff222');
+  console.log('');
+  console.log('    Сидорова М.И. (Ортодонт)');
+  console.log('    Телефон: +79009876543');
+  console.log('    Пароль:  staff333');
+  console.log('');
+  console.log('  ПАЦИЕНТЫ (все пароль: client123):');
+  console.log('    +79001111111 — Магомедов Рамазан А.');
+  console.log('    +79002222222 — Алиева Фатима Р.');
+  console.log('    +79003333333 — Гаджиев Тимур Р.');
+  console.log('========================================');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
+  .catch((e) => { console.error(e); process.exit(1); })
   .finally(() => prisma.$disconnect());

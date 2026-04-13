@@ -8,7 +8,6 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
         },
       }),
     }),
-    NotificationsModule,
   ],
   controllers: [AuthController],
   providers: [

@@ -1,13 +1,13 @@
 'use client';
 
 import { BottomNav } from '@/components/ui/BottomNav';
-import { LayoutDashboard, Users, ListChecks, Settings } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Tag, Settings } from 'lucide-react';
 import { useRequireAuth } from '@/lib/auth';
 
 const ownerTabs = [
   { href: '/owner/dashboard', label: 'Дашборд', icon: LayoutDashboard },
-  { href: '/owner/staff', label: 'Персонал', icon: Users },
   { href: '/owner/services', label: 'Услуги', icon: ListChecks },
+  { href: '/owner/promotions', label: 'Акции', icon: Tag },
   { href: '/owner/settings', label: 'Настройки', icon: Settings },
 ];
 

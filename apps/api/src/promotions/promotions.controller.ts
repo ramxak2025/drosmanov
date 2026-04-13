@@ -5,26 +5,21 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
-import { ServicesCatalogService } from './services-catalog.service';
-import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
+import { PromotionsService } from './promotions.service';
+import { CreatePromotionDto } from './dto/create-promotion.dto';
+import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { Public } from '../common/decorators/public.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-
-@Controller('services')
-export class ServicesCatalogController {
-  constructor(private service: ServicesCatalogService) {}
+@Controller('promotions')
+export class PromotionsController {
+  constructor(private service: PromotionsService) {}
 
   @Public()
   @Get()
-  findAll(
-    @Query('category') category?: string,
-    @Query('isActive') isActive?: string,
-  ) {
-    return this.service.findAll(category, isActive === 'false' ? false : true);
+  findAll(@Query('all') all?: string) {
+    return this.service.findAll(all !== 'true');
   }
 
   @Public()
@@ -36,7 +31,7 @@ export class ServicesCatalogController {
   @Post()
   @Roles('OWNER', 'STAFF')
   create(
-    @Body() dto: CreateServiceDto,
+    @Body() dto: CreatePromotionDto,
     @CurrentUser() user: { sub: string; role: string },
   ) {
     return this.service.create(dto, user);
@@ -46,7 +41,7 @@ export class ServicesCatalogController {
   @Roles('OWNER', 'STAFF')
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateServiceDto,
+    @Body() dto: UpdatePromotionDto,
     @CurrentUser() user: { sub: string; role: string },
   ) {
     return this.service.update(id, dto, user);
@@ -59,8 +54,8 @@ export class ServicesCatalogController {
       storage: memoryStorage(),
       limits: { fileSize: 10 * 1024 * 1024 },
       fileFilter: (_req, file, cb) => {
-        if (!ALLOWED_MIMES.includes(file.mimetype)) {
-          return cb(new BadRequestException('Только изображения (jpg, png, webp)'), false);
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+          return cb(new BadRequestException('Только изображения'), false);
         }
         cb(null, true);
       },
@@ -76,8 +71,11 @@ export class ServicesCatalogController {
   }
 
   @Delete(':id')
-  @Roles('OWNER')
-  deactivate(@Param('id', ParseUUIDPipe) id: string) {
-    return this.service.deactivate(id);
+  @Roles('OWNER', 'STAFF')
+  deactivate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: { sub: string; role: string },
+  ) {
+    return this.service.deactivate(id, user);
   }
 }

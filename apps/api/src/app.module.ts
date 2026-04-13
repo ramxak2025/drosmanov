@@ -16,6 +16,7 @@ import { StaffManagementModule } from './staff-management/staff-management.modul
 import { NotificationsModule } from './notifications/notifications.module';
 import { SettingsModule } from './settings/settings.module';
 import { HealthModule } from './health/health.module';
+import { PromotionsModule } from './promotions/promotions.module';
 import { configSchema } from './config/config.schema';
 
 @Module({
@@ -44,6 +45,7 @@ import { configSchema } from './config/config.schema';
     StaffManagementModule,
     NotificationsModule,
     SettingsModule,
+    PromotionsModule,
     HealthModule,
   ],
 })
