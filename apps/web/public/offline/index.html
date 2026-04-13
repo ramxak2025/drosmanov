@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Нет соединения — Dr. Osmanov</title>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #FAF8F5;
+      color: #2C2218;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { color: #C9A96E; font-size: 24px; margin-bottom: 8px; }
+    p { color: #7A6A5A; font-size: 16px; }
+    button {
+      margin-top: 24px;
+      background: #C9A96E;
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Dr. Osmanov</h1>
+    <p>Нет подключения к интернету</p>
+    <p>Проверьте соединение и попробуйте снова</p>
+    <button onclick="location.reload()">Обновить</button>
+  </div>
+</body>
+</html>

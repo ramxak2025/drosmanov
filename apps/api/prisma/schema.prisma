@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USERS & ROLES
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  phone        String   @unique
+  name         String   @default("")
+  role         Role     @default(CLIENT)
+  isActive     Boolean  @default(true)
+  isAnonymized Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  staffProfile      Staff?
+  clientProfile     Client?
+  auditLogs         AuditLog[]
+  pushSubscriptions PushSubscription[]
+  refreshTokens     RefreshToken[]
+
+  @@index([phone])
+  @@index([role])
+}
+
+enum Role {
+  OWNER
+  STAFF
+  CLIENT
+}
+
+model Staff {
+  id             String  @id @default(uuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty      String
+  bio            String?
+  photoPath      String?
+  salary         Float   @default(0)
+  workSchedule   Json?
+  isActive       Boolean @default(true)
+  telegramChatId String?
+
+  appointments Appointment[]
+  documents    Document[]
+  medRecords   MedRecord[]
+
+  @@index([isActive])
+}
+
+model Client {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthDate    DateTime?
+  address      String?
+  bonusBalance Float     @default(0)
+  notes        String?
+  allergyNotes String?
+
+  appointments      Appointment[]
+  medHistory        MedRecord[]
+  documents         Document[]
+  bonusTransactions BonusTransaction[]
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// APPOINTMENTS
+// ─────────────────────────────────────────────
+
+model Appointment {
+  id           String            @id @default(uuid())
+  clientId     String
+  client       Client            @relation(fields: [clientId], references: [id])
+  staffId      String
+  staff        Staff             @relation(fields: [staffId], references: [id])
+  serviceId    String
+  service      Service           @relation(fields: [serviceId], references: [id])
+  startTime    DateTime
+  endTime      DateTime
+  status       AppointmentStatus @default(PENDING)
+  notes        String?
+  reminderSent Boolean           @default(false)
+  cancelReason String?
+  cancelledAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  payment Payment?
+
+  @@index([clientId])
+  @@index([staffId])
+  @@index([startTime])
+  @@index([status])
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// ─────────────────────────────────────────────
+// SERVICES
+// ─────────────────────────────────────────────
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  duration    Int
+  category    String
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+// ─────────────────────────────────────────────
+// MEDICAL RECORDS
+// ─────────────────────────────────────────────
+
+model MedRecord {
+  id        String   @id @default(uuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id])
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  date      DateTime @default(now())
+  diagnosis String
+  treatment String
+  teethMap  Json?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+
+  @@index([clientId])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENTS & FILES
+// ─────────────────────────────────────────────
+
+model Document {
+  id           String       @id @default(uuid())
+  clientId     String?
+  client       Client?      @relation(fields: [clientId], references: [id])
+  staffId      String?
+  staff        Staff?       @relation(fields: [staffId], references: [id])
+  medRecordId  String?
+  medRecord    MedRecord?   @relation(fields: [medRecordId], references: [id])
+  type         DocumentType
+  originalName String
+  storedName   String
+  mimeType     String
+  size         Int
+  checksum     String
+  uploadedAt   DateTime     @default(now())
+
+  @@index([clientId])
+  @@index([medRecordId])
+}
+
+enum DocumentType {
+  XRAY
+  PHOTO
+  CONTRACT
+  OTHER
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+
+model Payment {
+  id            String        @id @default(uuid())
+  appointmentId String        @unique
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id])
+  amount        Float
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  bonusUsed     Float         @default(0)
+  bonusEarned   Float         @default(0)
+  processedBy   String
+  receiptNumber String        @unique @default(cuid())
+  createdAt     DateTime      @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BONUS
+  MIXED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+model BonusTransaction {
+  id        String    @id @default(uuid())
+  clientId  String
+  client    Client    @relation(fields: [clientId], references: [id])
+  amount    Float
+  type      BonusType
+  reason    String
+  createdAt DateTime  @default(now())
+
+  @@index([clientId])
+}
+
+enum BonusType {
+  EARN
+  SPEND
+}
+
+// ─────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+// ─────────────────────────────────────────────
+// AUDIT & SECURITY
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────
+// PUSH SUBSCRIPTIONS
+// ─────────────────────────────────────────────
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// CLINIC SETTINGS
+// ─────────────────────────────────────────────
+
+model ClinicSettings {
+  id              String   @id @default("singleton")
+  name            String   @default("Dr. Osmanov")
+  address         String   @default("")
+  phone           String   @default("")
+  email           String   @default("")
+  bonusPercent    Float    @default(5)
+  ownerTelegramId String?
+  updatedAt       DateTime @updatedAt
+}
