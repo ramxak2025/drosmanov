@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Calendar } from 'lucide-react';
+import { Calendar, Award } from 'lucide-react';
 import api from '@/lib/api';
 
 const D: Record<string, string> = { mon:'Пн', tue:'Вт', wed:'Ср', thu:'Чт', fri:'Пт', sat:'Сб', sun:'Вс' };
@@ -13,11 +13,11 @@ export default function DoctorsPage() {
   });
 
   return (
-    <div className="px-6 pt-10 pb-8">
-      <h1 className="text-h2">Врачи</h1>
-      <p className="text-base text-ink-secondary mt-2">Опытные специалисты</p>
+    <div className="px-6 pt-12 pb-8">
+      <h1 className="text-h2">Наши врачи</h1>
+      <p className="text-[15px] text-ink-secondary mt-2 mb-8">Опытные специалисты</p>
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-5">
         {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
           const name = (s.user as Record<string, unknown>)?.name as string || '';
           const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);
@@ -28,31 +28,47 @@ export default function DoctorsPage() {
             : [];
 
           return (
-            <div key={s.id as string} className="bg-bg-card rounded-lg p-6 shadow-card">
-              <div className="flex gap-5">
-                <div className="w-16 h-16 rounded-md bg-brand-light flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg font-extrabold text-brand-dark">{initials}</span>
-                </div>
-                <div>
-                  <h3 className="text-md font-bold">{name}</h3>
-                  <p className="text-sm text-brand font-semibold mt-1">{s.specialty as string}</p>
-                  {s.bio && <p className="text-sm text-ink-secondary mt-3 leading-relaxed">{s.bio as string}</p>}
-                </div>
+            <div key={s.id as string} className="bg-bg-card rounded-lg shadow-card overflow-hidden">
+              {/* Большое фото / аватар */}
+              <div className="h-48 bg-gradient-to-br from-brand-light to-brand-subtle flex items-center justify-center">
+                {s.photoPath ? (
+                  <img src={`/api/uploads/${s.photoPath}`} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[48px] font-extrabold text-brand/30">{initials}</span>
+                )}
               </div>
-              {days.length > 0 && (
-                <div className="mt-5 pt-5 border-t border-line">
-                  <p className="text-xs text-ink-tertiary font-bold uppercase tracking-[0.1em] mb-3 flex items-center gap-2">
-                    <Calendar size={12} /> Расписание
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {days.map((d) => (
-                      <span key={d} className="text-caption bg-brand-subtle text-brand-dark px-3 py-[6px] rounded-sm font-semibold">
-                        {d}
-                      </span>
-                    ))}
+
+              {/* Инфо */}
+              <div className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-h3">{name}</h3>
+                    <p className="text-sm text-brand font-semibold mt-1">{s.specialty as string}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                    <Award size={18} className="text-brand" />
                   </div>
                 </div>
-              )}
+
+                {s.bio && (
+                  <p className="text-sm text-ink-secondary mt-4 leading-relaxed">{s.bio as string}</p>
+                )}
+
+                {days.length > 0 && (
+                  <div className="mt-5 pt-5 border-t border-line">
+                    <p className="text-[11px] text-ink-tertiary font-bold uppercase tracking-[0.1em] mb-3 flex items-center gap-2">
+                      <Calendar size={12} /> Расписание
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {days.map((d) => (
+                        <span key={d} className="text-[11px] bg-brand-subtle text-brand-dark px-3 py-[6px] rounded-sm font-semibold">
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

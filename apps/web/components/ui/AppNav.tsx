@@ -64,7 +64,5 @@ export function AppNav() {
     }
   }, [pathname]);
 
-  if (pathname === '/login') return null;
-
   return <BottomNav tabs={tabs} />;
 }

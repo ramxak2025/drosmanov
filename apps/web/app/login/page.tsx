@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -14,131 +12,131 @@ export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    if (digits.length <= 1) return '+7';
-    let formatted = '+7';
-    if (digits.length > 1) formatted += ' (' + digits.slice(1, 4);
-    if (digits.length > 4) formatted += ') ' + digits.slice(4, 7);
-    if (digits.length > 7) formatted += '-' + digits.slice(7, 9);
-    if (digits.length > 9) formatted += '-' + digits.slice(9, 11);
-    return formatted;
+  const fmt = (v: string) => {
+    const d = v.replace(/\D/g, '');
+    if (d.length <= 1) return '+7';
+    let r = '+7';
+    if (d.length > 1) r += ' (' + d.slice(1, 4);
+    if (d.length > 4) r += ') ' + d.slice(4, 7);
+    if (d.length > 7) r += '-' + d.slice(7, 9);
+    if (d.length > 9) r += '-' + d.slice(9, 11);
+    return r;
   };
 
-  const getRawPhone = () => '+7' + phone.replace(/\D/g, '').slice(1);
+  const rawPhone = () => '+7' + phone.replace(/\D/g, '').slice(1);
 
-  const handleSubmit = async () => {
+  const submit = async () => {
     setError('');
     setLoading(true);
     try {
-      const endpoint = mode === 'login' ? '/auth/login' : '/auth/register';
-      const body: Record<string, string> = {
-        phone: getRawPhone(),
-        password,
-      };
+      const ep = mode === 'login' ? '/auth/login' : '/auth/register';
+      const body: Record<string, string> = { phone: rawPhone(), password };
       if (mode === 'register' && name) body.name = name;
-
-      const { data } = await api.post(endpoint, body);
+      const { data } = await api.post(ep, body);
       login(data.data.accessToken, data.data.user);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr.response?.data?.message || 'Ошибка входа');
+    } catch (e: unknown) {
+      setError((e as { response?: { data?: { message?: string } } }).response?.data?.message || 'Ошибка');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-container flex flex-col items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
-      >
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl font-bold text-primary">DO</span>
+    <div className="min-h-screen bg-bg flex flex-col">
+      {/* Header */}
+      <div className="px-6 pt-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-ink-secondary font-medium">
+          <ArrowLeft size={18} /> На главную
+        </Link>
+      </div>
+
+      {/* Form */}
+      <div className="flex-1 flex flex-col justify-center px-6 pb-12">
+        <div className="max-w-[360px] mx-auto w-full">
+          {/* Logo */}
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 rounded-xl bg-brand-light flex items-center justify-center mx-auto mb-4">
+              <span className="text-h3 font-extrabold text-brand-dark">DO</span>
+            </div>
+            <h1 className="text-h2">Личный кабинет</h1>
+            <p className="text-sm text-ink-secondary mt-2">
+              {mode === 'login' ? 'Войдите в свой аккаунт' : 'Создайте аккаунт'}
+            </p>
           </div>
-          <h1 className="text-3xl font-bold text-primary mb-1">Dr. Osmanov</h1>
-          <p className="text-text-secondary text-sm">Стоматологическая клиника</p>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => { setMode('login'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-2xl text-sm font-medium transition-all ${
-              mode === 'login' ? 'bg-primary text-white shadow-md' : 'bg-surface text-text-secondary'
-            }`}
-          >
-            Вход
-          </button>
-          <button
-            onClick={() => { setMode('register'); setError(''); }}
-            className={`flex-1 py-2.5 rounded-2xl text-sm font-medium transition-all ${
-              mode === 'register' ? 'bg-primary text-white shadow-md' : 'bg-surface text-text-secondary'
-            }`}
-          >
-            Регистрация
-          </button>
-        </div>
-
-        <motion.div
-          key={mode}
-          initial={{ opacity: 0, x: mode === 'login' ? -20 : 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="space-y-4"
-        >
-          {mode === 'register' && (
-            <Input
-              label="Ваше имя"
-              placeholder="Иван Иванов"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          )}
-
-          <Input
-            label="Номер телефона"
-            type="tel"
-            placeholder="+7 (900) 123-45-67"
-            value={phone}
-            onChange={(e) => setPhone(formatPhone(e.target.value))}
-          />
-
-          <div className="relative">
-            <Input
-              label="Пароль"
-              type={showPassword ? 'text' : 'password'}
-              placeholder={mode === 'register' ? 'Минимум 4 символа' : 'Введите пароль'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={error}
-            />
+          {/* Tabs */}
+          <div className="flex gap-1 bg-brand-subtle rounded-md p-1 mb-8">
             <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[38px] text-text-secondary p-1"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              onClick={() => { setMode('login'); setError(''); }}
+              className={`flex-1 py-3 rounded-sm text-sm font-semibold transition-all
+                ${mode === 'login' ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
+              Вход
+            </button>
+            <button
+              onClick={() => { setMode('register'); setError(''); }}
+              className={`flex-1 py-3 rounded-sm text-sm font-semibold transition-all
+                ${mode === 'register' ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
+              Регистрация
             </button>
           </div>
 
-          <Button
-            size="lg"
-            loading={loading}
-            onClick={handleSubmit}
-            disabled={getRawPhone().length !== 12 || password.length < 4}
-          >
-            {mode === 'login' ? 'Войти' : 'Зарегистрироваться'}
-          </Button>
-        </motion.div>
-      </motion.div>
+          <div className="space-y-4">
+            {mode === 'register' && (
+              <Field label="Ваше имя" value={name} onChange={setName} placeholder="Иван Иванов" />
+            )}
+            <Field label="Телефон" type="tel" value={phone} onChange={(v) => setPhone(fmt(v))} placeholder="+7 (900) 123-45-67" />
+            <div className="relative">
+              <Field
+                label="Пароль"
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={setPassword}
+                placeholder={mode === 'register' ? 'Минимум 4 символа' : 'Ваш пароль'}
+                error={error}
+              />
+              <button type="button" onClick={() => setShowPw(!showPw)}
+                className="absolute right-4 top-[38px] text-ink-disabled p-1">
+                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <button
+              onClick={submit}
+              disabled={loading || rawPhone().length !== 12 || password.length < 4}
+              className="w-full bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+                active:scale-[0.97] transition-transform disabled:opacity-40 disabled:pointer-events-none mt-2"
+            >
+              {loading ? 'Подождите...' : mode === 'login' ? 'Войти' : 'Создать аккаунт'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = 'text', placeholder, error }: {
+  label: string; value: string; onChange: (v: string) => void;
+  type?: string; placeholder?: string; error?: string;
+}) {
+  return (
+    <div>
+      <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-4 py-[14px] rounded-md bg-bg-card text-[15px] text-ink
+          placeholder:text-ink-disabled shadow-soft outline-none
+          focus:ring-2 focus:ring-brand/20 transition-shadow
+          ${error ? 'ring-2 ring-status-red/30' : ''}`}
+      />
+      {error && <p className="text-[12px] text-status-red mt-2 font-medium">{error}</p>}
     </div>
   );
 }
