@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { Search, User } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 import Link from 'next/link';
+import { Search, User, ChevronRight } from 'lucide-react';
+import { useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
 export default function PatientsListPage() {
+  useRequireAuth(['STAFF', 'OWNER']);
   const [search, setSearch] = useState('');
 
   const { data } = useQuery({
@@ -22,36 +22,36 @@ export default function PatientsListPage() {
   const patients = data?.data || [];
 
   return (
-    <div className="pt-2">
-      <h1 className="text-xl font-bold mb-4">Пациенты</h1>
+    <div className="px-6 pt-12 pb-8">
+      <h1 className="text-h2">Пациенты</h1>
 
-      <div className="relative mb-4">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+      {/* Search */}
+      <div className="relative mt-6">
+        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-disabled" />
         <input
-          className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           placeholder="Поиск по имени или телефону"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-11 pr-4 py-[14px] rounded-md bg-bg-card text-[15px] shadow-soft outline-none
+            focus:ring-2 focus:ring-brand/20"
         />
       </div>
 
-      <div className="space-y-2">
-        {patients.map((p: Record<string, unknown>, i: number) => (
-          <motion.div key={p.id as string} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
-            <Link href={`/staff/patients/${p.id}`}>
-              <Card>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User size={18} className="text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{(p.user as Record<string, unknown>)?.name as string}</p>
-                    <p className="text-xs text-text-secondary">{(p.user as Record<string, unknown>)?.phone as string}</p>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          </motion.div>
+      <div className="mt-6 space-y-3">
+        {patients.map((p: Record<string, unknown>) => (
+          <Link key={p.id as string} href={`/staff/patients/${p.id}`}>
+            <div className="bg-bg-card rounded-lg shadow-card p-4 flex items-center gap-4
+              active:scale-[0.98] transition-transform">
+              <div className="w-11 h-11 rounded-full bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                <User size={18} className="text-brand" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{(p.user as Record<string, unknown>)?.name as string}</p>
+                <p className="text-xs text-ink-tertiary mt-1">{(p.user as Record<string, unknown>)?.phone as string}</p>
+              </div>
+              <ChevronRight size={16} className="text-ink-disabled" />
+            </div>
+          </Link>
         ))}
       </div>
     </div>

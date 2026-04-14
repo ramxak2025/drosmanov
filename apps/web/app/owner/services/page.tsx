@@ -2,20 +2,18 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit3, Camera, Package } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { BottomSheet } from '@/components/ui/BottomSheet';
+import { Plus, Edit3, Camera, ChevronDown } from 'lucide-react';
+import { useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
 const CATEGORIES = ['Терапия', 'Хирургия', 'Гигиена', 'Ортодонтия', 'Имплантация', 'Эстетика'];
 
 export default function OwnerServicesPage() {
-  const queryClient = useQueryClient();
+  useRequireAuth(['OWNER']);
+  const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [openCat, setOpenCat] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', description: '', price: '', duration: '', category: 'Терапия' });
 
   const { data: services } = useQuery({
@@ -23,7 +21,7 @@ export default function OwnerServicesPage() {
     queryFn: async () => { const { data } = await api.get('/services?isActive=true'); return data.data; },
   });
 
-  const saveMutation = useMutation({
+  const save = useMutation({
     mutationFn: async () => {
       const body = {
         name: form.name,
@@ -32,36 +30,27 @@ export default function OwnerServicesPage() {
         duration: parseInt(form.duration),
         category: form.category,
       };
-      if (editId) {
-        await api.patch(`/services/${editId}`, body);
-      } else {
-        await api.post('/services', body);
-      }
+      if (editId) await api.patch(`/services/${editId}`, body);
+      else await api.post('/services', body);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['owner-services'] });
-      resetForm();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['owner-services'] }); reset(); },
   });
 
-  const uploadPhotoMutation = useMutation({
+  const uploadPhoto = useMutation({
     mutationFn: async ({ id, file }: { id: string; file: File }) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      await api.post(`/services/${id}/photo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const fd = new FormData();
+      fd.append('file', file);
+      await api.post(`/services/${id}/photo`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['owner-services'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['owner-services'] }),
   });
 
-  const resetForm = () => {
-    setShowForm(false);
-    setEditId(null);
+  const reset = () => {
+    setShowForm(false); setEditId(null);
     setForm({ name: '', description: '', price: '', duration: '', category: 'Терапия' });
   };
 
-  const startEdit = (s: Record<string, unknown>) => {
+  const edit = (s: Record<string, unknown>) => {
     setEditId(s.id as string);
     setForm({
       name: s.name as string,
@@ -73,102 +62,118 @@ export default function OwnerServicesPage() {
     setShowForm(true);
   };
 
-  // Group by category
   const grouped: Record<string, Record<string, unknown>[]> = {};
   (services || []).forEach((s: Record<string, unknown>) => {
-    const cat = s.category as string;
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(s);
+    const c = s.category as string;
+    if (!grouped[c]) grouped[c] = [];
+    grouped[c].push(s);
   });
 
-  return (
-    <div className="pt-2">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">Каталог услуг</h1>
-        <Button size="sm" onClick={() => { resetForm(); setShowForm(true); }}>
-          <Plus size={16} /> Добавить
-        </Button>
-      </div>
+  if (showForm) {
+    return (
+      <div className="px-6 pt-12 pb-8">
+        <button onClick={reset} className="text-sm text-ink-secondary font-medium mb-6">← Назад</button>
+        <h1 className="text-h2">{editId ? 'Редактировать услугу' : 'Новая услуга'}</h1>
 
-      {Object.entries(grouped).map(([category, items]) => (
-        <section key={category} className="mb-6">
-          <h2 className="font-semibold mb-2 text-text-secondary text-xs uppercase tracking-wider">{category}</h2>
-          <div className="space-y-2">
-            {items.map((s, i) => (
-              <motion.div key={s.id as string} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                <Card>
-                  <div className="flex gap-3">
-                    {/* Photo */}
-                    <div className="relative w-16 h-16 rounded-xl bg-surface flex-shrink-0 overflow-hidden">
-                      {s.photoPath ? (
-                        <img src={`/api/uploads/${s.photoPath}`} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package size={24} className="text-text-secondary/30" />
-                        </div>
-                      )}
-                      <label className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/30 transition-colors cursor-pointer group">
-                        <Camera size={14} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) uploadPhotoMutation.mutate({ id: s.id as string, file });
-                          }}
-                        />
-                      </label>
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm">{s.name as string}</p>
-                      {s.description && <p className="text-xs text-text-secondary truncate">{s.description as string}</p>}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-semibold text-primary">{(s.price as number).toLocaleString('ru')} &#8381;</span>
-                        <span className="text-xs text-text-secondary">{s.duration as number} мин</span>
-                      </div>
-                    </div>
-                    {/* Edit */}
-                    <button onClick={() => startEdit(s)} className="self-center p-2 text-text-secondary hover:text-primary">
-                      <Edit3 size={16} />
-                    </button>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {/* Create / Edit form */}
-      <BottomSheet isOpen={showForm} onClose={resetForm} title={editId ? 'Редактировать услугу' : 'Новая услуга'}>
-        <div className="space-y-4">
-          <Input label="Название" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Лечение кариеса" />
-          <Input label="Описание" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Краткое описание" />
+        <div className="mt-8 space-y-4">
+          <Field label="Название" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+          <Field label="Описание" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Цена, \u20BD" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="3000" />
-            <Input label="Время, мин" type="number" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="60" />
+            <Field label="Цена, ₽" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} />
+            <Field label="Время, мин" type="number" value={form.duration} onChange={(v) => setForm({ ...form, duration: v })} />
           </div>
           <div>
-            <label className="text-sm font-medium text-text-secondary mb-2 block">Категория</label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Категория</label>
+            <div className="grid grid-cols-3 gap-2">
               {CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setForm({ ...form, category: c })}
-                  className={`py-2 rounded-xl text-xs font-medium transition-all ${form.category === c ? 'bg-primary text-white' : 'bg-surface text-text-secondary'}`}
-                >
+                <button key={c} onClick={() => setForm({ ...form, category: c })}
+                  className={`py-[10px] rounded-sm text-[12px] font-semibold
+                    ${form.category === c ? 'bg-brand text-white' : 'bg-bg-card shadow-soft text-ink-secondary'}`}>
                   {c}
                 </button>
               ))}
             </div>
           </div>
-          <Button size="lg" loading={saveMutation.isPending} onClick={() => saveMutation.mutate()} disabled={!form.name || !form.price || !form.duration}>
-            {editId ? 'Сохранить' : 'Создать'}
-          </Button>
+          <button onClick={() => save.mutate()} disabled={!form.name || !form.price || !form.duration || save.isPending}
+            className="w-full bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+              active:scale-[0.97] transition-transform disabled:opacity-40">
+            {save.isPending ? 'Сохранение...' : editId ? 'Сохранить' : 'Создать'}
+          </button>
         </div>
-      </BottomSheet>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-6 pt-12 pb-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-h2">Услуги</h1>
+        <button onClick={() => { reset(); setShowForm(true); }}
+          className="bg-brand text-white w-10 h-10 rounded-md flex items-center justify-center shadow-button
+            active:scale-[0.95] transition-transform">
+          <Plus size={20} />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {Object.entries(grouped).map(([cat, items]) => (
+          <div key={cat}>
+            <button onClick={() => setOpenCat(openCat === cat ? null : cat)}
+              className="w-full bg-bg-card rounded-lg shadow-card p-5 flex items-center justify-between
+                active:scale-[0.99] transition-transform">
+              <div className="text-left">
+                <p className="text-[15px] font-bold">{cat}</p>
+                <p className="text-sm text-ink-tertiary mt-0.5">{items.length} услуг</p>
+              </div>
+              <ChevronDown size={18}
+                className={`text-ink-tertiary transition-transform ${openCat === cat ? 'rotate-180' : ''}`} />
+            </button>
+
+            {openCat === cat && (
+              <div className="mt-2 space-y-2">
+                {items.map((s) => (
+                  <div key={s.id as string} className="bg-bg-card rounded-md shadow-soft p-4 flex items-center gap-3">
+                    <label className="relative w-12 h-12 rounded-md bg-brand-subtle overflow-hidden flex-shrink-0 cursor-pointer">
+                      {s.photoPath ? (
+                        <img src={`/api/uploads/${s.photoPath}`} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera size={16} className="text-brand/40" />
+                        </div>
+                      )}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) uploadPhoto.mutate({ id: s.id as string, file: f });
+                        }} />
+                    </label>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{s.name as string}</p>
+                      <p className="text-xs text-brand font-bold mt-1">
+                        {(s.price as number).toLocaleString('ru')} ₽ · {s.duration as number} мин
+                      </p>
+                    </div>
+                    <button onClick={() => edit(s)} className="p-2 text-ink-tertiary active:scale-95">
+                      <Edit3 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-[14px] rounded-md bg-bg-card text-[15px] shadow-soft outline-none
+          focus:ring-2 focus:ring-brand/20" />
     </div>
   );
 }

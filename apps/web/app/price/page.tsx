@@ -3,13 +3,17 @@
 import { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
-import { ChevronDown, Clock, ArrowRight } from 'lucide-react';
+import { ChevronLeft, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 
-const CAT_ICONS: Record<string, string> = {
-  'Терапия': '🦷', 'Хирургия': '⚕️', 'Гигиена': '✨',
-  'Ортодонтия': '😁', 'Имплантация': '🔩', 'Эстетика': '💎',
+const CAT_IMAGES: Record<string, string> = {
+  'Терапия': 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&h=200&fit=crop&q=80',
+  'Хирургия': 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=400&h=200&fit=crop&q=80',
+  'Гигиена': 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=400&h=200&fit=crop&q=80',
+  'Ортодонтия': 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=400&h=200&fit=crop&q=80',
+  'Имплантация': 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=400&h=200&fit=crop&q=80',
+  'Эстетика': 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=400&h=200&fit=crop&q=80',
 };
 
 export default function PricePage() {
@@ -22,8 +26,7 @@ export default function PricePage() {
 
 function Content() {
   const sp = useSearchParams();
-  const initialCat = sp.get('cat') || null;
-  const [openCat, setOpenCat] = useState<string | null>(initialCat);
+  const [openCat, setOpenCat] = useState<string | null>(sp.get('cat') || null);
 
   const { data: services } = useQuery({
     queryKey: ['services'],
@@ -37,73 +40,81 @@ function Content() {
     grouped[cat].push(s);
   });
 
-  const cats = Object.keys(grouped);
+  // Если категория выбрана — показываем услуги
+  if (openCat && grouped[openCat]) {
+    return (
+      <div className="px-6 pt-12 pb-8">
+        <button onClick={() => setOpenCat(null)}
+          className="flex items-center gap-2 text-sm text-ink-secondary font-medium mb-6">
+          <ChevronLeft size={18} /> Все разделы
+        </button>
 
-  const toggle = (cat: string) => {
-    setOpenCat(openCat === cat ? null : cat);
-  };
+        <h1 className="text-h2">{openCat}</h1>
+        <p className="text-[15px] text-ink-secondary mt-2 mb-6">
+          {grouped[openCat].length} {plural(grouped[openCat].length)} — нажмите для записи
+        </p>
 
+        <div className="space-y-3">
+          {grouped[openCat].map((s) => (
+            <Link key={s.id as string} href={`/client/booking?serviceId=${s.id}`}>
+              <div className="bg-bg-card rounded-lg shadow-card p-5
+                active:scale-[0.98] transition-transform">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-[15px] font-bold">{s.name as string}</p>
+                    {s.description && (
+                      <p className="text-sm text-ink-secondary mt-2 leading-relaxed">{s.description as string}</p>
+                    )}
+                    <p className="text-sm text-ink-tertiary mt-2 flex items-center gap-1">
+                      <Clock size={13} /> {s.duration as number} мин
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+                    <span className="text-[17px] font-extrabold text-brand">
+                      {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')}\u00A0\u20BD`}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-end gap-1 mt-3 text-sm text-brand font-semibold">
+                  Записаться <ArrowRight size={14} />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Категории с фотками
   return (
     <div className="px-6 pt-12 pb-8">
       <h1 className="text-h2">Цены</h1>
       <p className="text-[15px] text-ink-secondary mt-2 mb-8">Выберите раздел для записи</p>
 
-      {/* Bento grid */}
-      <div className="space-y-3">
-        {cats.map((cat, i) => {
-          const items = grouped[cat];
-          const isOpen = openCat === cat;
-          const icon = CAT_ICONS[cat] || '📋';
-
+      <div className="space-y-4">
+        {Object.keys(grouped).map((cat) => {
+          const count = grouped[cat].length;
+          const img = CAT_IMAGES[cat];
           return (
-            <div key={cat}>
-              {/* Category card */}
-              <button
-                onClick={() => toggle(cat)}
-                className="w-full bg-bg-card rounded-lg shadow-card p-5 flex items-center gap-4
-                  active:scale-[0.99] transition-transform text-left"
-              >
-                <div className="w-12 h-12 rounded-md bg-brand-subtle flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl">{icon}</span>
+            <button key={cat} onClick={() => setOpenCat(cat)} className="w-full text-left">
+              <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
+                active:scale-[0.98] transition-transform">
+                {/* Фото раздела */}
+                <div className="h-32 relative">
+                  {img ? (
+                    <img src={img} alt={cat} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-brand-light" />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-[17px] font-bold text-white">{cat}</h3>
+                    <p className="text-[13px] text-white/70 mt-0.5">{count} {plural(count)}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-[15px] font-bold">{cat}</p>
-                  <p className="text-sm text-ink-tertiary mt-0.5">{items.length} {plural(items.length)}</p>
-                </div>
-                <ChevronDown
-                  size={20}
-                  className={`text-ink-tertiary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-
-              {/* Services list — expandable */}
-              {isOpen && (
-                <div className="mt-2 space-y-2 pl-1 pr-1">
-                  {items.map((s) => (
-                    <Link key={s.id as string} href={`/client/booking?serviceId=${s.id}`}>
-                      <div className="bg-bg-card rounded-md shadow-soft px-5 py-4 flex items-center gap-4
-                        active:scale-[0.98] transition-transform">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold">{s.name as string}</p>
-                          {s.description && (
-                            <p className="text-[12px] text-ink-tertiary mt-1 line-clamp-1">{s.description as string}</p>
-                          )}
-                          <p className="text-[12px] text-ink-disabled mt-1 flex items-center gap-1">
-                            <Clock size={11} /> {s.duration as number} мин
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-[15px] font-extrabold text-brand">
-                            {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')}\u00A0\u20BD`}
-                          </span>
-                          <ArrowRight size={14} className="text-brand" />
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+              </div>
+            </button>
           );
         })}
       </div>

@@ -1,47 +1,73 @@
 'use client';
 
-import { Star, LogOut, Phone, User } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/lib/auth';
+import { Star, LogOut, Phone, User, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth, useRequireAuth } from '@/lib/auth';
 
 export default function ProfilePage() {
+  useRequireAuth();
   const { user, logout } = useAuth();
 
   return (
-    <div className="pt-2">
-      <h1 className="text-xl font-bold mb-6">Профиль</h1>
+    <div className="px-6 pt-12 pb-8">
+      <h1 className="text-h2">Профиль</h1>
 
-      <Card className="mb-4">
+      {/* User card */}
+      <div className="bg-bg-card rounded-lg shadow-card p-6 mt-6">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-            <User size={28} className="text-primary" />
+          <div className="w-14 h-14 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0">
+            <User size={24} className="text-brand" />
           </div>
           <div>
-            <p className="font-semibold text-lg">{user?.name || 'Пациент'}</p>
-            <p className="text-sm text-text-secondary flex items-center gap-1">
-              <Phone size={14} /> {user?.phone}
+            <p className="text-[15px] font-bold">{user?.name || 'Пациент'}</p>
+            <p className="text-sm text-ink-secondary flex items-center gap-1 mt-1">
+              <Phone size={13} /> {user?.phone}
             </p>
           </div>
         </div>
-      </Card>
-
-      <Card className="mb-4">
-        <div className="flex items-center gap-3">
-          <Star size={20} className="text-warning" />
-          <div>
-            <p className="text-sm text-text-secondary">Бонусный баланс</p>
-            <p className="font-semibold text-lg">0 баллов</p>
-          </div>
-        </div>
-      </Card>
-
-      <div className="mt-8">
-        <Button variant="outline" size="lg" onClick={logout}>
-          <LogOut size={18} />
-          Выйти
-        </Button>
       </div>
+
+      {/* Bonus */}
+      <div className="bg-bg-card rounded-lg shadow-card p-5 mt-3 flex items-center gap-4">
+        <div className="w-10 h-10 rounded-md bg-brand-subtle flex items-center justify-center">
+          <Star size={18} className="text-brand" />
+        </div>
+        <div>
+          <p className="text-[11px] text-ink-tertiary font-medium">Бонусный баланс</p>
+          <p className="text-[17px] font-extrabold mt-0.5">0 баллов</p>
+        </div>
+      </div>
+
+      {/* Menu */}
+      <div className="mt-6 space-y-2">
+        <MenuRow label="Мои визиты" href="/client/visits" />
+        <MenuRow label="Мои документы" href="/client/documents" />
+      </div>
+
+      {/* Logout */}
+      <button onClick={logout}
+        className="w-full mt-8 bg-bg-card rounded-lg shadow-card p-4 flex items-center gap-3 text-status-red
+          active:scale-[0.98] transition-transform">
+        <LogOut size={18} />
+        <span className="text-sm font-semibold">Выйти</span>
+      </button>
+
+      {/* Back to site */}
+      <Link href="/" className="block text-center text-sm text-ink-tertiary mt-4 font-medium">
+        На главную
+      </Link>
     </div>
+  );
+}
+
+function MenuRow({ label, href }: { label: string; href: string }) {
+  return (
+    <Link href={href}>
+      <div className="bg-bg-card rounded-lg shadow-card p-4 flex items-center justify-between
+        active:scale-[0.98] transition-transform">
+        <span className="text-sm font-semibold">{label}</span>
+        <ChevronRight size={16} className="text-ink-disabled" />
+      </div>
+    </Link>
   );
 }

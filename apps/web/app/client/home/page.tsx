@@ -1,111 +1,91 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { CalendarDays, Clock, Star } from 'lucide-react';
 import Link from 'next/link';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/lib/auth';
+import { CalendarDays, Clock, FileText, ChevronRight } from 'lucide-react';
+import { useAuth, useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
-export default function ClientHomePage() {
+export default function ClientHome() {
+  useRequireAuth(['CLIENT']);
   const { user } = useAuth();
 
-  const { data: appointments } = useQuery({
-    queryKey: ['appointments', 'upcoming'],
+  const { data } = useQuery({
+    queryKey: ['my-appointments'],
     queryFn: async () => {
       const { data } = await api.get('/appointments', {
-        params: { status: 'CONFIRMED', startDate: new Date().toISOString(), limit: 3 },
+        params: { startDate: new Date().toISOString(), limit: '3' },
       });
-      return data.data.data;
+      return data.data;
     },
   });
 
+  const appointments = data?.data || [];
+  const firstName = user?.name?.split(' ')[0] || 'Пациент';
+
   return (
-    <div className="space-y-6 pt-2">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <h1 className="text-2xl font-bold">
-          {getGreeting()}, {user?.name?.split(' ')[0] || 'Пациент'}
-        </h1>
-        <p className="text-text-secondary text-sm mt-1">
-          Клиника Dr. Osmanov
-        </p>
-      </motion.div>
+    <div className="px-6 pt-12 pb-8">
+      <p className="text-sm text-ink-secondary">{greeting()}</p>
+      <h1 className="text-h2 mt-1">{firstName}</h1>
 
-      <Link href="/client/booking">
-        <Button size="lg">
-          <CalendarDays size={20} />
-          Записаться на приём
-        </Button>
-      </Link>
+      <div className="grid grid-cols-2 gap-3 mt-8">
+        <Link href="/client/booking">
+          <div className="bg-brand text-white rounded-lg p-5 flex flex-col items-center gap-3
+            active:scale-[0.97] transition-transform shadow-button">
+            <CalendarDays size={24} />
+            <p className="text-sm font-bold">Записаться</p>
+          </div>
+        </Link>
+        <Link href="/client/visits">
+          <div className="bg-bg-card rounded-lg shadow-card p-5 flex flex-col items-center gap-3
+            active:scale-[0.97] transition-transform">
+            <FileText size={24} className="text-brand" />
+            <p className="text-sm font-bold">Мои визиты</p>
+          </div>
+        </Link>
+      </div>
 
-      {appointments && appointments.length > 0 && (
-        <section>
-          <h2 className="font-semibold mb-3">Ближайшие записи</h2>
+      <div className="mt-10">
+        <h2 className="text-h3 mb-4">Ближайшие записи</h2>
+        {appointments.length === 0 ? (
+          <div className="bg-bg-card rounded-lg shadow-card p-8 text-center">
+            <CalendarDays size={28} className="text-ink-disabled mx-auto mb-3" />
+            <p className="text-sm text-ink-tertiary">Нет предстоящих записей</p>
+            <Link href="/client/booking" className="text-sm text-brand font-semibold mt-3 inline-block">
+              Записаться на приём
+            </Link>
+          </div>
+        ) : (
           <div className="space-y-3">
-            {appointments.map((apt: Record<string, unknown>, i: number) => (
-              <motion.div
-                key={apt.id as string}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Card>
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Clock size={20} className="text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{(apt.service as Record<string, unknown>)?.name as string}</p>
-                      <p className="text-sm text-text-secondary">
-                        {new Date(apt.startTime as string).toLocaleDateString('ru-RU', {
-                          day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
-                        })}
-                      </p>
-                      <p className="text-sm text-text-secondary">
-                        Врач: {((apt.staff as Record<string, unknown>)?.user as Record<string, unknown>)?.name as string}
-                      </p>
-                    </div>
+            {appointments.map((apt: Record<string, unknown>) => (
+              <Link key={apt.id as string} href="/client/visits">
+                <div className="bg-bg-card rounded-lg shadow-card p-5 flex items-center gap-4
+                  active:scale-[0.98] transition-transform">
+                  <div className="w-11 h-11 rounded-md bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                    <Clock size={18} className="text-brand" />
                   </div>
-                </Card>
-              </motion.div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold">{(apt.service as Record<string, unknown>)?.name as string}</p>
+                    <p className="text-[12px] text-ink-tertiary mt-1">
+                      {new Date(apt.startTime as string).toLocaleDateString('ru-RU', {
+                        day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="text-ink-disabled" />
+                </div>
+              </Link>
             ))}
           </div>
-        </section>
-      )}
-
-      <section>
-        <h2 className="font-semibold mb-3">Быстрые действия</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <Link href="/client/visits">
-            <Card className="text-center py-6">
-              <FileTextIcon />
-              <p className="text-sm font-medium mt-2">Мои визиты</p>
-            </Card>
-          </Link>
-          <Link href="/client/documents">
-            <Card className="text-center py-6">
-              <Star size={24} className="text-primary mx-auto" />
-              <p className="text-sm font-medium mt-2">Документы</p>
-            </Card>
-          </Link>
-        </div>
-      </section>
+        )}
+      </div>
     </div>
   );
 }
 
-function FileTextIcon() {
-  return <CalendarDays size={24} className="text-primary mx-auto" />;
-}
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Доброе утро';
-  if (hour < 18) return 'Добрый день';
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Доброе утро';
+  if (h < 18) return 'Добрый день';
   return 'Добрый вечер';
 }

@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, UserPlus, Ban } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
 export default function DashboardPage() {
+  useRequireAuth(['OWNER']);
   const [period, setPeriod] = useState('today');
 
   const { data: overview } = useQuery({
@@ -16,16 +16,6 @@ export default function DashboardPage() {
       const { data } = await api.get('/analytics/overview', { params: { period } });
       return data.data;
     },
-    staleTime: 5 * 60_000,
-  });
-
-  const { data: revenueChart } = useQuery({
-    queryKey: ['analytics', 'revenue-chart', period],
-    queryFn: async () => {
-      const { data } = await api.get('/analytics/revenue-chart', { params: { period: 'month' } });
-      return data.data;
-    },
-    staleTime: 5 * 60_000,
   });
 
   const { data: topServices } = useQuery({
@@ -34,81 +24,65 @@ export default function DashboardPage() {
       const { data } = await api.get('/analytics/top-services', { params: { period: 'month', limit: '5' } });
       return data.data;
     },
-    staleTime: 5 * 60_000,
   });
 
   return (
-    <div className="pt-2">
-      <h1 className="text-xl font-bold mb-4">Дашборд</h1>
+    <div className="px-6 pt-12 pb-8">
+      <h1 className="text-h2">Дашборд</h1>
+      <p className="text-[15px] text-ink-secondary mt-2">Статистика клиники</p>
 
-      <div className="flex gap-2 mb-4">
+      {/* Period tabs */}
+      <div className="flex gap-1 bg-brand-subtle rounded-md p-1 mt-6">
         {[
-          { key: 'today', label: 'Сегодня' },
-          { key: 'week', label: 'Неделя' },
-          { key: 'month', label: 'Месяц' },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setPeriod(key)}
-            className={`flex-1 py-2 rounded-2xl text-sm font-medium ${
-              period === key ? 'bg-primary text-white' : 'bg-surface text-text-secondary'
-            }`}
-          >
-            {label}
+          { k: 'today', l: 'Сегодня' },
+          { k: 'week', l: 'Неделя' },
+          { k: 'month', l: 'Месяц' },
+        ].map(({ k, l }) => (
+          <button key={k} onClick={() => setPeriod(k)}
+            className={`flex-1 py-2.5 rounded-sm text-sm font-semibold transition-all
+              ${period === k ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
+            {l}
           </button>
         ))}
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <KpiCard icon={TrendingUp} label="Выручка" value={`${(overview?.revenue || 0).toLocaleString('ru')} \u20BD`} color="text-success" />
-        <KpiCard icon={Calendar} label="Записей" value={String(overview?.appointmentsTotal || 0)} color="text-primary" />
-        <KpiCard icon={UserPlus} label="Новых клиентов" value={String(overview?.newClients || 0)} color="text-warning" />
-        <KpiCard icon={Ban} label="Отмен" value={String(overview?.appointmentsCancelled || 0)} color="text-error" />
+      {/* KPI */}
+      <div className="grid grid-cols-2 gap-3 mt-6">
+        <KpiCard icon={TrendingUp} label="Выручка" value={`${(overview?.revenue || 0).toLocaleString('ru')} \u20BD`} color="text-status-green" />
+        <KpiCard icon={Calendar} label="Записей" value={String(overview?.appointmentsTotal || 0)} color="text-brand" />
+        <KpiCard icon={UserPlus} label="Новых клиентов" value={String(overview?.newClients || 0)} color="text-status-green" />
+        <KpiCard icon={Ban} label="Отмен" value={String(overview?.appointmentsCancelled || 0)} color="text-status-red" />
       </div>
 
-      {/* Revenue chart placeholder */}
-      {revenueChart && revenueChart.length > 0 && (
-        <section className="mb-6">
-          <h2 className="font-semibold mb-3">Выручка за месяц</h2>
-          <Card>
-            <div className="h-32 flex items-end gap-1">
-              {revenueChart.slice(-14).map((point: { date: string; revenue: number }, i: number) => {
-                const max = Math.max(...revenueChart.map((p: { revenue: number }) => p.revenue));
-                const height = max > 0 ? (point.revenue / max) * 100 : 0;
-                return (
-                  <motion.div
-                    key={point.date}
-                    className="flex-1 bg-primary rounded-t"
-                    initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    transition={{ delay: i * 0.03 }}
-                  />
-                );
-              })}
-            </div>
-          </Card>
-        </section>
+      {/* Средний чек */}
+      {overview?.averageCheck !== undefined && (
+        <div className="bg-bg-card rounded-lg shadow-card p-5 mt-3">
+          <p className="text-[11px] text-ink-tertiary font-semibold uppercase tracking-wider">Средний чек</p>
+          <p className="text-h3 mt-2">{(overview.averageCheck || 0).toLocaleString('ru')} ₽</p>
+        </div>
       )}
 
       {/* Top services */}
       {topServices && topServices.length > 0 && (
-        <section>
-          <h2 className="font-semibold mb-3">Топ услуг</h2>
-          <div className="space-y-2">
+        <div className="mt-10">
+          <h2 className="text-h3 mb-4">Топ услуг (месяц)</h2>
+          <div className="space-y-3">
             {topServices.map((s: { service: string; count: number; revenue: number }, i: number) => (
-              <Card key={s.service}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-sm">{i + 1}. {s.service}</p>
-                    <p className="text-xs text-text-secondary">{s.count} записей</p>
-                  </div>
-                  <span className="font-semibold text-sm text-primary">{s.revenue.toLocaleString('ru')} &#8381;</span>
+              <div key={s.service} className="bg-bg-card rounded-lg shadow-card p-4 flex items-center gap-4">
+                <div className="w-8 h-8 rounded-sm bg-brand-subtle flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-extrabold text-brand">{i + 1}</span>
                 </div>
-              </Card>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold">{s.service}</p>
+                  <p className="text-xs text-ink-tertiary mt-0.5">{s.count} записей</p>
+                </div>
+                <span className="text-sm font-extrabold text-brand">
+                  {s.revenue.toLocaleString('ru')} ₽
+                </span>
+              </div>
             ))}
           </div>
-        </section>
+        </div>
       )}
     </div>
   );
@@ -118,10 +92,10 @@ function KpiCard({ icon: Icon, label, value, color }: {
   icon: React.ElementType; label: string; value: string; color: string;
 }) {
   return (
-    <Card>
+    <div className="bg-bg-card rounded-lg shadow-card p-5">
       <Icon size={20} className={color} />
-      <p className="text-lg font-bold mt-2">{value}</p>
-      <p className="text-xs text-text-secondary">{label}</p>
-    </Card>
+      <p className="text-[17px] font-extrabold mt-3">{value}</p>
+      <p className="text-[11px] text-ink-tertiary font-medium mt-1">{label}</p>
+    </div>
   );
 }

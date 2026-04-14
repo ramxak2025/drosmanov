@@ -2,104 +2,112 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Check } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
 export default function CashPage() {
+  useRequireAuth(['STAFF', 'OWNER']);
   const [appointmentId, setAppointmentId] = useState('');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState<'CASH' | 'CARD' | 'BONUS' | 'MIXED'>('CASH');
   const [bonusUsed, setBonusUsed] = useState('');
   const [receipt, setReceipt] = useState<Record<string, unknown> | null>(null);
 
-  const mutation = useMutation({
+  const pay = useMutation({
     mutationFn: async () => {
       const { data } = await api.post('/payments', {
-        appointmentId,
-        amount: parseFloat(amount),
-        method,
+        appointmentId, amount: parseFloat(amount), method,
         bonusUsed: bonusUsed ? parseFloat(bonusUsed) : 0,
       });
-      const receiptData = await api.get(`/payments/receipt/${data.data.id}`);
-      return receiptData.data.data;
+      const r = await api.get(`/payments/receipt/${data.data.id}`);
+      return r.data.data;
     },
-    onSuccess: (data) => setReceipt(data),
+    onSuccess: (d) => setReceipt(d),
   });
 
   if (receipt) {
     return (
-      <div className="pt-2">
-        <div className="text-center mb-6">
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-3">
-            <Check size={32} className="text-success" />
-          </motion.div>
-          <h2 className="text-xl font-bold">Оплата принята</h2>
+      <div className="px-6 pt-12 pb-8">
+        <div className="text-center mb-8">
+          <div className="w-14 h-14 rounded-full bg-status-green/15 flex items-center justify-center mx-auto mb-4">
+            <Check size={28} className="text-status-green" />
+          </div>
+          <h1 className="text-h2">Оплата принята</h1>
         </div>
-        <Card className="space-y-2 text-sm">
+
+        <div className="bg-bg-card rounded-lg shadow-card p-6 space-y-3">
           <Row label="Чек" value={`#${receipt.receiptNumber}`} />
           <Row label="Пациент" value={receipt.patient as string} />
           <Row label="Услуга" value={receipt.service as string} />
           <Row label="Врач" value={receipt.doctor as string} />
-          <Row label="Сумма" value={`${(receipt.amount as number).toLocaleString('ru')} \u20BD`} />
+          <Row label="Сумма" value={`${(receipt.amount as number).toLocaleString('ru')} ₽`} />
           <Row label="Метод" value={receipt.method as string} />
-          {(receipt.bonusUsed as number) > 0 && <Row label="Бонусы списано" value={String(receipt.bonusUsed)} />}
-          {(receipt.bonusEarned as number) > 0 && <Row label="Бонусы начислено" value={String(receipt.bonusEarned)} />}
-        </Card>
-        <Button size="lg" className="mt-4" onClick={() => { setReceipt(null); setAppointmentId(''); setAmount(''); }}>
+          {(receipt.bonusEarned as number) > 0 && <Row label="Бонусы +" value={String(receipt.bonusEarned)} />}
+        </div>
+
+        <button onClick={() => { setReceipt(null); setAppointmentId(''); setAmount(''); }}
+          className="w-full mt-6 bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+            active:scale-[0.97] transition-transform">
           Новая оплата
-        </Button>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="pt-2">
-      <h1 className="text-xl font-bold mb-4">Касса</h1>
+    <div className="px-6 pt-12 pb-8">
+      <h1 className="text-h2">Касса</h1>
+      <p className="text-[15px] text-ink-secondary mt-2 mb-8">Приём оплаты за услугу</p>
 
       <div className="space-y-4">
-        <Input label="ID записи" value={appointmentId} onChange={(e) => setAppointmentId(e.target.value)} placeholder="UUID записи" />
-        <Input label="Сумма, \u20BD" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="3000" />
+        <Field label="ID записи" value={appointmentId} onChange={setAppointmentId} />
+        <Field label="Сумма, ₽" type="number" value={amount} onChange={setAmount} />
 
         <div>
-          <label className="text-sm font-medium text-text-secondary mb-2 block">Метод оплаты</label>
+          <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Метод оплаты</label>
           <div className="grid grid-cols-4 gap-2">
             {(['CASH', 'CARD', 'BONUS', 'MIXED'] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMethod(m)}
-                className={`py-2 rounded-2xl text-xs font-medium ${method === m ? 'bg-primary text-white' : 'bg-surface text-text-secondary'}`}
-              >
-                {{ CASH: 'Нал.', CARD: 'Карта', BONUS: 'Бонусы', MIXED: 'Микс' }[m]}
+              <button key={m} onClick={() => setMethod(m)}
+                className={`py-[10px] rounded-sm text-[11px] font-semibold transition-all
+                  ${method === m ? 'bg-brand text-white shadow-button' : 'bg-bg-card shadow-soft text-ink-secondary'}`}>
+                {{ CASH: 'Нал.', CARD: 'Карта', BONUS: 'Бонус', MIXED: 'Микс' }[m]}
               </button>
             ))}
           </div>
         </div>
 
         {(method === 'BONUS' || method === 'MIXED') && (
-          <Input label="Бонусов к списанию" type="number" value={bonusUsed} onChange={(e) => setBonusUsed(e.target.value)} placeholder="0" />
+          <Field label="Бонусов к списанию" type="number" value={bonusUsed} onChange={setBonusUsed} />
         )}
 
-        <Button size="lg" loading={mutation.isPending} onClick={() => mutation.mutate()} disabled={!appointmentId || !amount}>
-          Провести оплату
-        </Button>
-
-        {mutation.error && (
-          <p className="text-sm text-error text-center">{(mutation.error as Error).message}</p>
-        )}
+        <button onClick={() => pay.mutate()}
+          disabled={!appointmentId || !amount || pay.isPending}
+          className="w-full bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+            active:scale-[0.97] transition-transform disabled:opacity-40">
+          {pay.isPending ? 'Оплата...' : 'Провести оплату'}
+        </button>
       </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-[14px] rounded-md bg-bg-card text-[15px] shadow-soft outline-none
+          focus:ring-2 focus:ring-brand/20" />
     </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-text-secondary">{label}</span>
-      <span className="font-medium">{value}</span>
+    <div className="flex justify-between items-start gap-3">
+      <span className="text-xs text-ink-tertiary">{label}</span>
+      <span className="text-sm font-semibold text-right">{value}</span>
     </div>
   );
 }

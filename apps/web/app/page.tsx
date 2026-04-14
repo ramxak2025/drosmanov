@@ -31,7 +31,7 @@ export default function HomePage() {
           alt="Dr. Osmanov Dental"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
         <div className="absolute bottom-0 left-0 right-0 p-6 pb-8">
           <p className="text-[11px] font-bold text-brand-muted tracking-[0.15em] uppercase mb-3">
             Стоматологическая клиника
