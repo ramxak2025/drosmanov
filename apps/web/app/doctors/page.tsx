@@ -17,7 +17,7 @@ export default function DoctorsPage() {
       <h1 className="text-h2">Наши врачи</h1>
       <p className="text-[15px] text-ink-secondary mt-2 mb-8">Опытные специалисты</p>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
           const name = (s.user as Record<string, unknown>)?.name as string || '';
           const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);

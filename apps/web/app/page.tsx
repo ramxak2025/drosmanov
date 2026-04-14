@@ -195,7 +195,7 @@ export default function HomePage() {
         <h2 className="text-h2 mb-2">Личный кабинет</h2>
         <p className="text-[14px] text-ink-secondary mb-6">Зарегистрируйтесь и&nbsp;получите доступ к&nbsp;возможностям</p>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Feature icon={Calendar} title="Запись онлайн" text="Записывайтесь на приём в удобное время" />
           <Feature icon={FileText} title="История визитов" text="Все ваши приёмы и результаты в одном месте" />
           <Feature icon={CreditCard} title="Бонусный счёт" text="Копите и тратьте бонусы на услуги" />
@@ -212,7 +212,7 @@ export default function HomePage() {
       {/* ═══ Отзывы ═══ */}
       <section className="px-6 mt-14">
         <h2 className="text-h2 mb-5">Отзывы</h2>
-        <div className="space-y-3">
+        <div className="space-y-4">
           <Review name="Амина К." text="Отличная клиника! Врачи внимательные, всё объяснили. Лечила кариес безболезненно." />
           <Review name="Руслан М." text="Делал чистку — результат превосходный. Записался на следующий раз." />
           <Review name="Патимат Г." text="Спасибо за профессионализм! Наконец-то нашла своего стоматолога." />

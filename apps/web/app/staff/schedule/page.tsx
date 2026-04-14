@@ -66,7 +66,7 @@ export default function SchedulePage() {
           <p className="text-sm text-ink-tertiary">Нет записей на этот день</p>
         </div>
       ) : (
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-4">
           {items.map((apt: Record<string, unknown>) => {
             const s = STATUS[apt.status as string] || STATUS.PENDING;
             return (

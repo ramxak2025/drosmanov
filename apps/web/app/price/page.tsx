@@ -71,7 +71,7 @@ function Content() {
         </div>
 
         {/* Услуги — отступы между карточками */}
-        <div className="px-6 mt-6 space-y-4">
+        <div className="px-6 mt-6 space-y-6 pb-2">
           {items.map((s) => (
             <Link key={s.id as string} href={`/booking?serviceId=${s.id}`}>
               <div className="bg-bg-card rounded-lg shadow-card p-5
@@ -110,7 +110,7 @@ function Content() {
       <h1 className="text-h2">Цены</h1>
       <p className="text-[15px] text-ink-secondary mt-2 mb-8">Выберите раздел для записи</p>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {Object.keys(grouped).map((cat) => {
           const count = grouped[cat].length;
           const meta = CAT_META[cat];

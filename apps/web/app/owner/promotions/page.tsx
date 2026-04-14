@@ -99,7 +99,7 @@ export default function PromosPage() {
           <p className="text-sm text-ink-tertiary">Нет акций</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {promos.map((p: Record<string, unknown>) => {
             const expired = new Date(p.endDate as string) < new Date();
             return (
