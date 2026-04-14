@@ -87,10 +87,12 @@ function Content() {
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0 pt-1">
-                    <p className="text-[18px] font-extrabold text-brand">
-                      {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')}`}
+                    <p className="text-[18px] font-extrabold text-brand whitespace-nowrap">
+                      {(s.price as number) === 0
+                        ? 'бесплатно'
+                        : <>{(s.price as number).toLocaleString('ru')}&nbsp;<span className="text-[14px] text-brand-dark">₽</span></>
+                      }
                     </p>
-                    {(s.price as number) !== 0 && <p className="text-[11px] text-ink-tertiary">₽</p>}
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-line text-sm text-brand font-bold">

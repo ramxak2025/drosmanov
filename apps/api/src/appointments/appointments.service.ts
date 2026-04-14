@@ -92,15 +92,18 @@ export class AppointmentsService {
     return appointment;
   }
 
-  async create(dto: CreateAppointmentDto, user: { sub: string; role: string }) {
-    // Get client profile
+  async create(dto: CreateAppointmentDto & { clientId?: string }, user: { sub: string; role: string }) {
+    // STAFF и OWNER могут записать любого клиента по clientId из body
+    // CLIENT может записать только себя
     let clientId: string;
     if (user.role === 'CLIENT') {
       const client = await this.prisma.client.findFirst({ where: { userId: user.sub } });
       if (!client) throw new ForbiddenException();
       clientId = client.id;
+    } else if ((user.role === 'STAFF' || user.role === 'OWNER') && dto.clientId) {
+      clientId = dto.clientId;
     } else {
-      throw new BadRequestException('Только клиент может создавать записи для себя');
+      throw new BadRequestException('Укажите clientId для записи');
     }
 
     // Check for time conflicts

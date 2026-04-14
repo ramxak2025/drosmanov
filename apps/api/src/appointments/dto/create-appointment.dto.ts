@@ -1,6 +1,10 @@
 import { IsString, IsUUID, IsDateString, IsOptional, MaxLength } from 'class-validator';
 
 export class CreateAppointmentDto {
+  @IsOptional()
+  @IsUUID()
+  clientId?: string;
+
   @IsUUID()
   staffId: string;
 

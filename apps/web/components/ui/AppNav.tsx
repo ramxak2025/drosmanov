@@ -28,7 +28,7 @@ const clientTabs = [
 const staffTabs = [
   { href: '/staff/schedule', label: 'Приёмы', icon: CalendarDays },
   { href: '/staff/patients', label: 'Пациенты', icon: Users },
-  { href: '/client/profile', label: 'Профиль', icon: User },
+  { href: '/staff/profile', label: 'Профиль', icon: User },
 ];
 
 const ownerTabs = [

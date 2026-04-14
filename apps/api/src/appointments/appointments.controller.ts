@@ -54,7 +54,7 @@ export class AppointmentsController {
   }
 
   @Post()
-  @Roles('CLIENT')
+  @Roles('CLIENT', 'STAFF', 'OWNER')
   create(
     @Body() dto: CreateAppointmentDto,
     @CurrentUser() user: { sub: string; role: string },
