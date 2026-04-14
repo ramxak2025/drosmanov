@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
@@ -36,7 +37,7 @@ export class StaffManagementService {
             specialty: dto.specialty,
             bio: dto.bio,
             salary: dto.salary || 0,
-            workSchedule: dto.workSchedule || null,
+            workSchedule: dto.workSchedule ? (dto.workSchedule as Prisma.InputJsonValue) : Prisma.JsonNull,
             canManageServices: dto.canManageServices || false,
             canManageSchedule: dto.canManageSchedule || false,
             canManagePromotions: dto.canManagePromotions || false,
