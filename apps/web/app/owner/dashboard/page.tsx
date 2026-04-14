@@ -66,7 +66,7 @@ export default function DashboardPage() {
       {topServices && topServices.length > 0 && (
         <div className="mt-10">
           <h2 className="text-h3 mb-4">Топ услуг (месяц)</h2>
-          <div className="space-y-4">
+          <div className="stack">
             {topServices.map((s: { service: string; count: number; revenue: number }, i: number) => (
               <div key={s.service} className="bg-bg-card rounded-lg shadow-card p-4 flex items-center gap-4">
                 <div className="w-8 h-8 rounded-sm bg-brand-subtle flex items-center justify-center flex-shrink-0">

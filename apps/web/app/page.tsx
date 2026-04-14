@@ -195,7 +195,7 @@ export default function HomePage() {
         <h2 className="text-h2 mb-2">Личный кабинет</h2>
         <p className="text-[14px] text-ink-secondary mb-6">Зарегистрируйтесь и&nbsp;получите доступ к&nbsp;возможностям</p>
 
-        <div className="space-y-4">
+        <div className="stack">
           <Feature icon={Calendar} title="Запись онлайн" text="Записывайтесь на приём в удобное время" />
           <Feature icon={FileText} title="История визитов" text="Все ваши приёмы и результаты в одном месте" />
           <Feature icon={CreditCard} title="Бонусный счёт" text="Копите и тратьте бонусы на услуги" />
@@ -212,7 +212,7 @@ export default function HomePage() {
       {/* ═══ Отзывы ═══ */}
       <section className="px-6 mt-14">
         <h2 className="text-h2 mb-5">Отзывы</h2>
-        <div className="space-y-4">
+        <div className="stack">
           <Review name="Амина К." text="Отличная клиника! Врачи внимательные, всё объяснили. Лечила кариес безболезненно." />
           <Review name="Руслан М." text="Делал чистку — результат превосходный. Записался на следующий раз." />
           <Review name="Патимат Г." text="Спасибо за профессионализм! Наконец-то нашла своего стоматолога." />
@@ -226,7 +226,7 @@ export default function HomePage() {
           <iframe
             src="https://yandex.ru/map-widget/v1/?ll=47.5049,42.9849&z=15&pt=47.5049,42.9849,pm2rdm"
             width="100%" height="200" frameBorder="0" style={{ border: 0, display: 'block' }} />
-          <div className="p-5 space-y-5">
+          <div className="p-5 stack-md">
             <InfoRow icon={MapPin} text="г. Махачкала, ул. Ярагского, 45" />
             <InfoRow icon={Phone} text="+7 (8722) 12-34-56" href="tel:+78722123456" />
             <InfoRow icon={Clock} text="Пн–Пт 9:00–19:00 · Сб 10:00–14:00" />

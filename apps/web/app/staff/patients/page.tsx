@@ -37,7 +37,7 @@ export default function PatientsListPage() {
         />
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 stack">
         {patients.map((p: Record<string, unknown>) => (
           <Link key={p.id as string} href={`/staff/patients/${p.id}`}>
             <div className="bg-bg-card rounded-lg shadow-card p-4 flex items-center gap-4

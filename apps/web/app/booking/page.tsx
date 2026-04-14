@@ -146,7 +146,7 @@ function BookingForm() {
           <p className="text-[15px] text-ink-secondary mt-3">Мы ждём вас</p>
         </div>
 
-        <div className="bg-bg-card rounded-lg shadow-card p-6 mt-8 space-y-3">
+        <div className="bg-bg-card rounded-lg shadow-card p-6 mt-8 stack-sm">
           <Row label="Услуга" value={service?.name as string || ''} />
           <Row label="Врач" value={(doctor?.user as Record<string, unknown>)?.name as string || ''} />
           <Row label="Дата" value={new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} />
@@ -193,7 +193,7 @@ function BookingForm() {
         {step === 'service' && (
           <>
             <h1 className="text-h2">Выберите услугу</h1>
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 stack-sm">
               {(services || []).map((s: Record<string, unknown>) => (
                 <button key={s.id as string} onClick={() => { setServiceId(s.id as string); setTimeout(next, 150); }}
                   className={`w-full text-left bg-bg-card rounded-lg p-4 flex items-center justify-between gap-3
@@ -216,7 +216,7 @@ function BookingForm() {
         {step === 'doctor' && (
           <>
             <h1 className="text-h2">Выберите врача</h1>
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 stack-sm">
               {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
                 const name = (s.user as Record<string, unknown>)?.name as string || '';
                 const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);
@@ -296,7 +296,7 @@ function BookingForm() {
             <h1 className="text-h2">Ваши данные</h1>
             <p className="text-[14px] text-ink-secondary mt-2 mb-6">Мы позвоним для подтверждения</p>
 
-            <div className="space-y-4">
+            <div className="stack">
               <InputField label="Имя" icon={UserIcon} value={name} onChange={setName} placeholder="Ваше имя" />
               <InputField label="Телефон" icon={Phone} type="tel" value={phone}
                 onChange={(v) => setPhone(fmt(v))} placeholder="+7 (900) 123-45-67" />
@@ -310,7 +310,7 @@ function BookingForm() {
             </div>
 
             {/* Сводка */}
-            <div className="bg-bg-card rounded-lg shadow-card p-5 mt-6 space-y-2">
+            <div className="bg-bg-card rounded-lg shadow-card p-5 mt-6 stack-sm">
               <Row label="Услуга" value={service?.name as string || ''} />
               <Row label="Врач" value={(doctor?.user as Record<string, unknown>)?.name as string || ''} />
               <Row label="Дата" value={new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + ', ' + (slot?.start || '')} />
@@ -318,7 +318,7 @@ function BookingForm() {
             </div>
 
             {/* Согласие на обработку ПД */}
-            <div className="mt-6 space-y-3">
+            <div className="mt-6 stack-sm">
               <Checkbox checked={agreedPersonal} onChange={setAgreedPersonal}>
                 Я&nbsp;даю согласие на&nbsp;обработку моих <a href="#" className="text-brand font-semibold underline">персональных данных</a> в&nbsp;соответствии с&nbsp;152-ФЗ
               </Checkbox>

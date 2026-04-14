@@ -53,7 +53,7 @@ export default function VisitsPage() {
           <p className="text-sm text-ink-tertiary">Записей пока нет</p>
         </div>
       ) : (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 stack">
           {items.map((apt: Record<string, unknown>) => {
             const s = STATUS[apt.status as string] || STATUS.PENDING;
             return (

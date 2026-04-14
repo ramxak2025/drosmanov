@@ -36,7 +36,7 @@ export default function CashPage() {
           <h1 className="text-h2">Оплата принята</h1>
         </div>
 
-        <div className="bg-bg-card rounded-lg shadow-card p-6 space-y-3">
+        <div className="bg-bg-card rounded-lg shadow-card p-6 stack-sm">
           <Row label="Чек" value={`#${receipt.receiptNumber}`} />
           <Row label="Пациент" value={receipt.patient as string} />
           <Row label="Услуга" value={receipt.service as string} />
@@ -60,7 +60,7 @@ export default function CashPage() {
       <h1 className="text-h2">Касса</h1>
       <p className="text-[15px] text-ink-secondary mt-2 mb-8">Приём оплаты за услугу</p>
 
-      <div className="space-y-4">
+      <div className="stack">
         <Field label="ID записи" value={appointmentId} onChange={setAppointmentId} />
         <Field label="Сумма, ₽" type="number" value={amount} onChange={setAmount} />
 

@@ -84,7 +84,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="stack">
             {mode === 'register' && (
               <Field label="Ваше имя" value={name} onChange={setName} placeholder="Иван Иванов" />
             )}

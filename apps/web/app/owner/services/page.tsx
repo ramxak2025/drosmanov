@@ -75,7 +75,7 @@ export default function OwnerServicesPage() {
         <button onClick={reset} className="text-sm text-ink-secondary font-medium mb-6">← Назад</button>
         <h1 className="text-h2">{editId ? 'Редактировать услугу' : 'Новая услуга'}</h1>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 stack">
           <Field label="Название" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
           <Field label="Описание" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div className="grid grid-cols-2 gap-3">
@@ -115,7 +115,7 @@ export default function OwnerServicesPage() {
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className="stack-sm">
         {Object.entries(grouped).map(([cat, items]) => (
           <div key={cat}>
             <button onClick={() => setOpenCat(openCat === cat ? null : cat)}
@@ -130,7 +130,7 @@ export default function OwnerServicesPage() {
             </button>
 
             {openCat === cat && (
-              <div className="mt-2 space-y-2">
+              <div className="mt-2 stack-sm">
                 {items.map((s) => (
                   <div key={s.id as string} className="bg-bg-card rounded-md shadow-soft p-4 flex items-center gap-3">
                     <label className="relative w-12 h-12 rounded-md bg-brand-subtle overflow-hidden flex-shrink-0 cursor-pointer">

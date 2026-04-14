@@ -44,7 +44,7 @@ export default function DocumentsPage() {
           <p className="text-text-secondary">Документы появятся после первого визита</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="stack-sm">
           {documents.map((doc: Record<string, unknown>, i: number) => {
             const Icon = TYPE_ICONS[(doc.type as string)] || FileText;
             return (

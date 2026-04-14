@@ -39,7 +39,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Menu */}
-      <div className="mt-6 space-y-2">
+      <div className="mt-6 stack-sm">
         <MenuRow label="Мои визиты" href="/client/visits" />
         <MenuRow label="Мои документы" href="/client/documents" />
       </div>

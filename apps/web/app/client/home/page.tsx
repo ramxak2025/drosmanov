@@ -56,7 +56,7 @@ export default function ClientHome() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="stack">
             {appointments.map((apt: Record<string, unknown>) => (
               <Link key={apt.id as string} href="/client/visits">
                 <div className="bg-bg-card rounded-lg shadow-card p-5 flex items-center gap-4

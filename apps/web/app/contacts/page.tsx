@@ -16,7 +16,7 @@ export default function ContactsPage() {
       </div>
 
       {/* Контактная информация — 12px gap */}
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 stack">
         <InfoCard icon={MapPin} label="Адрес" value="г. Махачкала, ул. Ярагского, 45" />
         <InfoCard icon={Phone} label="Телефон" value="+7 (8722) 12-34-56" href="tel:+78722123456" />
         <InfoCard icon={Clock} label="Режим работы" value="Пн–Пт: 9:00–19:00 · Сб: 10:00–14:00" />

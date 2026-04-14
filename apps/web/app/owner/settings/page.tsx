@@ -75,7 +75,7 @@ function ClinicTab() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="stack">
       <Field label="Название клиники" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
       <Field label="Адрес" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
       <Field label="Телефон" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
@@ -106,13 +106,13 @@ function StaffTab() {
   });
 
   return (
-    <div className="space-y-3">
+    <div className="stack-sm">
       {(staff || []).map((s: Record<string, unknown>) => (
         <div key={s.id as string} className="bg-bg-card rounded-lg shadow-card p-5">
           <p className="text-[15px] font-bold">{(s.user as Record<string, unknown>)?.name as string}</p>
           <p className="text-sm text-brand font-semibold mt-1">{s.specialty as string}</p>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 stack-sm">
             <Toggle label="Управление услугами" checked={s.canManageServices as boolean}
               onChange={(v) => toggle.mutate({ id: s.id as string, field: 'canManageServices', value: v })} />
             <Toggle label="Управление расписанием" checked={s.canManageSchedule as boolean}

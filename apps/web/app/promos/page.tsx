@@ -21,7 +21,7 @@ export default function PromosPage() {
           <p className="text-base text-ink-tertiary">Нет активных акций</p>
         </div>
       ) : (
-        <div className="mt-8 space-y-5">
+        <div className="mt-8 stack-md">
           {promotions.map((p: Record<string, unknown>) => (
             <div key={p.id as string} className="bg-bg-card rounded-lg shadow-card overflow-hidden">
               {p.photoPath && (

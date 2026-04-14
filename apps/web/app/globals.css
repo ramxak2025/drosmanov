@@ -37,4 +37,11 @@
     padding-bottom: calc(88px + var(--safe-b));
     min-height: 100dvh;
   }
+
+  /* ═══ Надёжные стеки (flex gap вместо space-y) ═══ */
+  .stack-sm { display: flex; flex-direction: column; gap: 12px; }
+  .stack    { display: flex; flex-direction: column; gap: 16px; }
+  .stack-md { display: flex; flex-direction: column; gap: 20px; }
+  .stack-lg { display: flex; flex-direction: column; gap: 24px; }
+  .stack-xl { display: flex; flex-direction: column; gap: 32px; }
 }

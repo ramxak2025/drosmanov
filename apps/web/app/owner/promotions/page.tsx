@@ -65,7 +65,7 @@ export default function PromosPage() {
         <button onClick={reset} className="text-sm text-ink-secondary font-medium mb-6">← Назад</button>
         <h1 className="text-h2">{editId ? 'Редактировать' : 'Новая акция'}</h1>
 
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 stack">
           <Field label="Название" value={form.title} onChange={(v) => setForm({ ...form, title: v })} />
           <Field label="Описание" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <Field label="Скидка (%)" type="number" value={form.discount} onChange={(v) => setForm({ ...form, discount: v })} />
@@ -99,7 +99,7 @@ export default function PromosPage() {
           <p className="text-sm text-ink-tertiary">Нет акций</p>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="stack-md">
           {promos.map((p: Record<string, unknown>) => {
             const expired = new Date(p.endDate as string) < new Date();
             return (

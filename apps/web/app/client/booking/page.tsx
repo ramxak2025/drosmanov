@@ -141,7 +141,7 @@ export default function BookingPage() {
         {step === 'service' && (
           <StepWrap key="service">
             <h2 className="font-semibold mb-3">Выберите услугу</h2>
-            <div className="space-y-2">
+            <div className="stack-sm">
               {services?.map((s: Record<string, unknown>) => (
                 <Card key={s.id as string} onClick={() => { dispatch({ type: 'SET_SERVICE', payload: { id: s.id as string, name: s.name as string, price: s.price as number, duration: s.duration as number } }); next(); }}
                   className={state.serviceId === s.id ? 'ring-2 ring-primary' : ''}>
@@ -161,7 +161,7 @@ export default function BookingPage() {
         {step === 'doctor' && (
           <StepWrap key="doctor">
             <h2 className="font-semibold mb-3">Выберите врача</h2>
-            <div className="space-y-2">
+            <div className="stack-sm">
               {staffList?.map((s: Record<string, unknown>) => (
                 <Card key={s.id as string} onClick={() => { dispatch({ type: 'SET_STAFF', payload: { id: s.id as string, name: (s.user as Record<string, unknown>)?.name as string } }); next(); }}
                   className={state.staffId === s.id ? 'ring-2 ring-primary' : ''}>
@@ -213,7 +213,7 @@ export default function BookingPage() {
         {step === 'confirm' && (
           <StepWrap key="confirm">
             <h2 className="font-semibold mb-4">Подтверждение</h2>
-            <Card className="space-y-3 mb-4">
+            <Card className="stack-sm mb-4">
               <Row label="Услуга" value={state.serviceName} />
               <Row label="Врач" value={state.staffName} />
               <Row label="Дата" value={new Date(state.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} />
