@@ -7,11 +7,6 @@ export const metadata: Metadata = {
   title: 'Dr. Osmanov — Стоматология',
   description: 'Стоматологическая клиника Dr. Osmanov — запись онлайн',
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Dr. Osmanov',
-  },
 };
 
 export const viewport: Viewport = {
@@ -28,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body>
         <Providers>
-          <main className="page-container px-4">{children}</main>
+          <div className="page">{children}</div>
           <AppNav />
         </Providers>
       </body>

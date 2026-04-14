@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,8 +7,6 @@
 @layer base {
   :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-top: env(safe-area-inset-top, 0px);
-    --nav-height: 84px;
   }
 
   * {
@@ -21,42 +19,98 @@
     color: #2C2218;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
   html { height: -webkit-fill-available; }
   body { min-height: -webkit-fill-available; }
 
-  /* Scrollbar hide for horizontal scroll */
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @layer components {
-  .glass-card {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(20px) saturate(1.8);
-    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-    border: 1px solid rgba(224, 216, 206, 0.5);
-    border-radius: 20px;
-    box-shadow: 0 2px 16px rgba(44,34,24,0.04);
-  }
-
-  .page-container {
+  /* ── Page container ── */
+  .page {
     max-width: 430px;
     margin: 0 auto;
-    padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px);
+    padding-bottom: calc(80px + var(--safe-bottom));
     min-height: 100dvh;
   }
-}
 
-@keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
+  /* ── Card ── */
+  .ds-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(224, 216, 206, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(44, 34, 24, 0.04);
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
+  /* ── Button primary ── */
+  .ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: #C9A96E;
+    color: #FFFFFF;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(201, 169, 110, 0.25);
+    transition: transform 0.15s;
+  }
+  .ds-btn:active { transform: scale(0.97); }
+
+  /* ── Button secondary ── */
+  .ds-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: #FFFFFF;
+    color: #2C2218;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(224, 216, 206, 0.6);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.15s;
+  }
+  .ds-btn-secondary:active { transform: scale(0.97); }
+
+  /* ── Chip ── */
+  .ds-chip {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ds-chip-active {
+    background: #C9A96E;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(201, 169, 110, 0.25);
+  }
+  .ds-chip-inactive {
+    background: #FFFFFF;
+    color: #7A6A5A;
+    border: 1px solid rgba(224, 216, 206, 0.5);
+  }
+
+  /* ── Section spacing ── */
+  .ds-section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .ds-section + .ds-section {
+    margin-top: 64px;
+  }
 }
