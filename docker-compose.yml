@@ -50,6 +50,8 @@ services:
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - uploads:/var/uploads:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
     depends_on: [api, web]
     networks: [internal, external]
     restart: unless-stopped
@@ -57,6 +59,7 @@ services:
 volumes:
   pgdata:
   uploads:
+  certbot-www:
 
 networks:
   internal:
