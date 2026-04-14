@@ -12,7 +12,7 @@ echo "  Полный redeploy приложения"
 echo "════════════════════════════════════════"
 echo ""
 
-echo "[1/6] Git pull..."
+echo "[1/6] Синхронизация с git (hard reset)..."
 git fetch origin claude/dental-clinic-pwa-docs-AJZvi
 git reset --hard origin/claude/dental-clinic-pwa-docs-AJZvi
 echo "  → HEAD: $(git log --oneline -1)"
@@ -35,21 +35,15 @@ echo "[5/6] Запуск..."
 docker compose up -d
 echo ""
 
-echo "[6/6] Ожидание 15 секунд и проверка..."
-sleep 15
+echo "[6/6] Ожидание 20 секунд..."
+sleep 20
 echo ""
 
 echo "════════════════════════════════════════"
 echo "  BUILD-ID на сервере:"
-curl -s https://stoma.web-kultura.ru/api/health | grep -o '"buildId":"[^"]*"' || echo "  (не получен)"
+curl -s https://stoma.web-kultura.ru/api/health 2>/dev/null | grep -o '"buildId":"[^"]*"' || echo "  (API не отвечает)"
 echo ""
 echo "════════════════════════════════════════"
 echo ""
-echo "  Проверить можно здесь:"
-echo "  https://stoma.web-kultura.ru/api/health"
-echo ""
-echo "  buildId должен быть: 2026-04-14-doctors-bonuses-v2"
-echo ""
-echo "════════════════════════════════════════"
 
 docker compose ps
