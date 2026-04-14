@@ -2,35 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Building2, Users, Check } from 'lucide-react';
+import { LogOut, Building2, Users, Check, Phone as PhoneIcon, Share2 } from 'lucide-react';
 import { useAuth, useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
+
+type Tab = 'clinic' | 'contacts' | 'social' | 'staff';
 
 export default function OwnerSettingsPage() {
   useRequireAuth(['OWNER']);
   const { logout } = useAuth();
-  const [tab, setTab] = useState<'clinic' | 'staff'>('clinic');
+  const [tab, setTab] = useState<Tab>('clinic');
 
   return (
     <div className="px-6 pt-12 pb-8">
       <h1 className="text-h2">Настройки</h1>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-brand-subtle rounded-md p-1 mt-6">
-        <button onClick={() => setTab('clinic')}
-          className={`flex-1 py-2.5 rounded-sm text-sm font-semibold flex items-center justify-center gap-1.5 transition-all
-            ${tab === 'clinic' ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
-          <Building2 size={16} /> Клиника
-        </button>
-        <button onClick={() => setTab('staff')}
-          className={`flex-1 py-2.5 rounded-sm text-sm font-semibold flex items-center justify-center gap-1.5 transition-all
-            ${tab === 'staff' ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
-          <Users size={16} /> Персонал
-        </button>
+      <div className="grid grid-cols-2 gap-1 bg-brand-subtle rounded-md p-1 mt-6">
+        <TabBtn k="clinic" current={tab} onClick={setTab} icon={Building2}>Клиника</TabBtn>
+        <TabBtn k="contacts" current={tab} onClick={setTab} icon={PhoneIcon}>Контакты</TabBtn>
+        <TabBtn k="social" current={tab} onClick={setTab} icon={Share2}>Соцсети</TabBtn>
+        <TabBtn k="staff" current={tab} onClick={setTab} icon={Users}>Персонал</TabBtn>
       </div>
 
       <div className="mt-6">
-        {tab === 'clinic' ? <ClinicTab /> : <StaffTab />}
+        {tab === 'clinic' && <ClinicTab />}
+        {tab === 'contacts' && <ContactsTab />}
+        {tab === 'social' && <SocialTab />}
+        {tab === 'staff' && <StaffTab />}
       </div>
 
       <button onClick={logout}
@@ -43,11 +41,23 @@ export default function OwnerSettingsPage() {
   );
 }
 
+function TabBtn({ k, current, onClick, icon: Icon, children }: {
+  k: Tab; current: Tab; onClick: (k: Tab) => void; icon: React.ElementType; children: React.ReactNode;
+}) {
+  const active = current === k;
+  return (
+    <button onClick={() => onClick(k)}
+      className={`py-2.5 rounded-sm text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-all
+        ${active ? 'bg-bg-card shadow-soft text-ink' : 'text-ink-secondary'}`}>
+      <Icon size={14} /> {children}
+    </button>
+  );
+}
+
+/* ══ Клиника ══ */
 function ClinicTab() {
   const qc = useQueryClient();
-  const [form, setForm] = useState({
-    name: '', address: '', phone: '', email: '', bonusPercent: 5, ownerTelegramId: '',
-  });
+  const [form, setForm] = useState({ name: '', bonusPercent: 5, ownerTelegramId: '' });
   const [saved, setSaved] = useState(false);
 
   const { data } = useQuery({
@@ -56,13 +66,11 @@ function ClinicTab() {
   });
 
   useEffect(() => {
-    if (data) {
-      setForm({
-        name: data.name || '', address: data.address || '', phone: data.phone || '',
-        email: data.email || '', bonusPercent: data.bonusPercent || 5,
-        ownerTelegramId: data.ownerTelegramId || '',
-      });
-    }
+    if (data) setForm({
+      name: data.name || '',
+      bonusPercent: data.bonusPercent || 5,
+      ownerTelegramId: data.ownerTelegramId || '',
+    });
   }, [data]);
 
   const save = useMutation({
@@ -77,20 +85,111 @@ function ClinicTab() {
   return (
     <div className="stack">
       <Field label="Название клиники" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-      <Field label="Адрес" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
-      <Field label="Телефон" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
-      <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
-      <Field label="% бонусов" type="number" value={String(form.bonusPercent)} onChange={(v) => setForm({ ...form, bonusPercent: Number(v) })} />
-      <Field label="Telegram Chat ID" value={form.ownerTelegramId} onChange={(v) => setForm({ ...form, ownerTelegramId: v })} />
-      <button onClick={() => save.mutate()}
-        className="w-full bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
-          active:scale-[0.97] transition-transform">
-        {saved ? <span className="flex items-center justify-center gap-2"><Check size={16} /> Сохранено</span> : 'Сохранить'}
-      </button>
+      <Field label="% бонусов (на будущее)" type="number" value={String(form.bonusPercent)} onChange={(v) => setForm({ ...form, bonusPercent: Number(v) })} />
+      <Field label="Telegram Chat ID владельца" value={form.ownerTelegramId} onChange={(v) => setForm({ ...form, ownerTelegramId: v })} hint="Для получения уведомлений" />
+      <SaveBtn onClick={() => save.mutate()} saved={saved} loading={save.isPending} />
     </div>
   );
 }
 
+/* ══ Контакты ══ */
+function ContactsTab() {
+  const qc = useQueryClient();
+  const [form, setForm] = useState({
+    address: '', phone: '', email: '', workHours: '',
+    mapLat: 42.9849, mapLng: 47.5049,
+  });
+  const [saved, setSaved] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => { const { data } = await api.get('/settings'); return data.data; },
+  });
+
+  useEffect(() => {
+    if (data) setForm({
+      address: data.address || '',
+      phone: data.phone || '',
+      email: data.email || '',
+      workHours: data.workHours || '',
+      mapLat: data.mapLat || 42.9849,
+      mapLng: data.mapLng || 47.5049,
+    });
+  }, [data]);
+
+  const save = useMutation({
+    mutationFn: async () => { await api.patch('/settings', form); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
+
+  return (
+    <div className="stack">
+      <Field label="Адрес клиники" value={form.address} onChange={(v) => setForm({ ...form, address: v })} placeholder="г. Махачкала, ул. Ярагского, 45" />
+      <Field label="Телефон" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+7 (8722) 12-34-56" />
+      <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} placeholder="info@drosmanov.ru" />
+      <Field label="Режим работы" value={form.workHours} onChange={(v) => setForm({ ...form, workHours: v })} placeholder="Пн–Пт 9:00–19:00 · Сб 10:00–14:00" />
+
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Широта (карта)" type="number" value={String(form.mapLat)} onChange={(v) => setForm({ ...form, mapLat: Number(v) })} hint="Для Яндекс карты" />
+        <Field label="Долгота (карта)" type="number" value={String(form.mapLng)} onChange={(v) => setForm({ ...form, mapLng: Number(v) })} />
+      </div>
+
+      <SaveBtn onClick={() => save.mutate()} saved={saved} loading={save.isPending} />
+    </div>
+  );
+}
+
+/* ══ Соцсети ══ */
+function SocialTab() {
+  const qc = useQueryClient();
+  const [form, setForm] = useState({
+    whatsapp: '', telegram: '', vk: '', youtube: '', instagram: '', facebook: '',
+  });
+  const [saved, setSaved] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => { const { data } = await api.get('/settings'); return data.data; },
+  });
+
+  useEffect(() => {
+    if (data) setForm({
+      whatsapp: data.whatsapp || '',
+      telegram: data.telegram || '',
+      vk: data.vk || '',
+      youtube: data.youtube || '',
+      instagram: data.instagram || '',
+      facebook: data.facebook || '',
+    });
+  }, [data]);
+
+  const save = useMutation({
+    mutationFn: async () => { await api.patch('/settings', form); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
+
+  return (
+    <div className="stack">
+      <Field label="WhatsApp" value={form.whatsapp} onChange={(v) => setForm({ ...form, whatsapp: v })} placeholder="https://wa.me/79001234567" />
+      <Field label="Telegram" value={form.telegram} onChange={(v) => setForm({ ...form, telegram: v })} placeholder="https://t.me/username" />
+      <Field label="ВКонтакте" value={form.vk} onChange={(v) => setForm({ ...form, vk: v })} placeholder="https://vk.com/username" />
+      <Field label="YouTube" value={form.youtube} onChange={(v) => setForm({ ...form, youtube: v })} placeholder="https://youtube.com/@channel" />
+      <Field label="Instagram" value={form.instagram} onChange={(v) => setForm({ ...form, instagram: v })} placeholder="https://instagram.com/username" hint="Meta признана экстремистской в РФ" />
+      <Field label="Facebook" value={form.facebook} onChange={(v) => setForm({ ...form, facebook: v })} placeholder="https://facebook.com/page" />
+      <SaveBtn onClick={() => save.mutate()} saved={saved} loading={save.isPending} />
+    </div>
+  );
+}
+
+/* ══ Персонал (права) ══ */
 function StaffTab() {
   const qc = useQueryClient();
   const { data: staff } = useQuery({
@@ -126,13 +225,19 @@ function StaffTab() {
   );
 }
 
-function Field({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+/* ── Компоненты ── */
+
+function Field({ label, value, onChange, type = 'text', placeholder, hint }: {
+  label: string; value: string; onChange: (v: string) => void;
+  type?: string; placeholder?: string; hint?: string;
+}) {
   return (
     <div>
       <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
         className="w-full px-4 py-[14px] rounded-md bg-bg-card text-[15px] shadow-soft outline-none
-          focus:ring-2 focus:ring-brand/20" />
+          focus:ring-2 focus:ring-brand/20 placeholder:text-ink-disabled" />
+      {hint && <p className="text-[11px] text-ink-tertiary mt-1.5">{hint}</p>}
     </div>
   );
 }
@@ -147,5 +252,16 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
           ${checked ? 'left-6' : 'left-1'}`} />
       </button>
     </div>
+  );
+}
+
+function SaveBtn({ onClick, saved, loading }: { onClick: () => void; saved: boolean; loading: boolean }) {
+  return (
+    <button onClick={onClick} disabled={loading}
+      className="w-full bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+        active:scale-[0.97] transition-transform disabled:opacity-40">
+      {saved ? <span className="flex items-center justify-center gap-2"><Check size={16} /> Сохранено</span> :
+        loading ? 'Сохранение...' : 'Сохранить'}
+    </button>
   );
 }

@@ -50,4 +50,11 @@
   .aspect-tall     { aspect-ratio: 4 / 5; }
   .aspect-wide     { aspect-ratio: 16 / 9; }
   .aspect-sq       { aspect-ratio: 1 / 1; }
+
+  .animate-fade-in { animation: fade-in-up 0.25s ease-out; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }

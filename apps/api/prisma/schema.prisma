@@ -349,6 +349,15 @@ model ClinicSettings {
   address         String   @default("")
   phone           String   @default("")
   email           String   @default("")
+  workHours       String   @default("Пн–Пт 9:00–19:00 · Сб 10:00–14:00")
+  mapLat          Float    @default(42.9849)
+  mapLng          Float    @default(47.5049)
+  whatsapp        String   @default("")
+  telegram        String   @default("")
+  vk              String   @default("")
+  youtube         String   @default("")
+  instagram       String   @default("")
+  facebook        String   @default("")
   bonusPercent    Float    @default(5)
   ownerTelegramId String?
   updatedAt       DateTime @updatedAt

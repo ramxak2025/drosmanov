@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
-  Calendar, ArrowRight, Award, Briefcase, X,
+  Calendar, ArrowRight, Award, Briefcase, X, Stethoscope,
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -33,62 +33,14 @@ export default function DoctorsPage() {
         </p>
       </div>
 
-      {/* Grid 2 колонки */}
-      <div className="px-6 grid grid-cols-2 gap-3">
+      {/* Список карточек (каждая может быть раскрытой или сложенной) */}
+      <div className="px-6 stack">
         {active.map((s: Record<string, unknown>) => {
-          const name = (s.user as Record<string, unknown>)?.name as string || '';
-          const parts = name.split(' ');
-          const initials = parts.map((w: string) => w[0]).join('').slice(0, 2);
-          const first = parts[0] || '';
-          const last = parts[1] || '';
           const isOpen = openId === s.id;
-
           if (isOpen) {
-            // Раскрытая карточка — занимает 2 колонки
-            return (
-              <div key={s.id as string} className="col-span-2">
-                <DoctorExpanded doctor={s} onClose={() => setOpenId(null)} />
-              </div>
-            );
+            return <DoctorExpanded key={s.id as string} doctor={s} onClose={() => setOpenId(null)} />;
           }
-
-          return (
-            <button key={s.id as string} onClick={() => setOpenId(s.id as string)}
-              className="text-left active:scale-[0.97] transition-transform">
-              <div className="relative overflow-hidden rounded-xl bg-ink shadow-card">
-                <div className="aspect-portrait relative">
-                  {s.photoPath ? (
-                    <img src={`/api/uploads/${s.photoPath}`} alt={name}
-                      className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-light to-brand-subtle
-                      flex items-center justify-center">
-                      <span className="text-[54px] font-extrabold text-brand/30">{initials}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-
-                  <div className="absolute top-3 left-3">
-                    <div className="bg-white/15 backdrop-blur-md border border-white/20
-                      px-2.5 py-1 rounded-full">
-                      <p className="text-[10px] font-semibold text-white tracking-wide">
-                        {s.specialty as string}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white text-[15px] font-extrabold leading-tight">{first}</p>
-                    <p className="text-white/90 text-[15px] font-extrabold leading-tight">{last}</p>
-                    <div className="flex items-center gap-1 mt-2 text-white/75">
-                      <span className="text-[10px] font-semibold">Подробнее</span>
-                      <ArrowRight size={11} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </button>
-          );
+          return <DoctorCardCompact key={s.id as string} doctor={s} onOpen={() => setOpenId(s.id as string)} />;
         })}
       </div>
 
@@ -105,7 +57,49 @@ export default function DoctorsPage() {
   );
 }
 
-/* ══ Раскрытая карточка врача inline ══ */
+/* ═══ Сложенная карточка (горизонтальная с фото слева) ═══ */
+function DoctorCardCompact({ doctor, onOpen }: { doctor: Record<string, unknown>; onOpen: () => void }) {
+  const name = (doctor.user as Record<string, unknown>)?.name as string || '';
+  const parts = name.split(' ');
+  const initials = parts.map((w: string) => w[0]).join('').slice(0, 2);
+  const first = parts[0] || '';
+  const lastName = parts[1] || '';
+
+  return (
+    <button onClick={onOpen} className="text-left active:scale-[0.98] transition-transform">
+      <div className="bg-bg-card rounded-xl shadow-card overflow-hidden flex">
+        {/* Вертикальное фото слева */}
+        <div className="w-[120px] aspect-portrait flex-shrink-0 relative">
+          {doctor.photoPath ? (
+            <img src={`/api/uploads/${doctor.photoPath}`} alt={name}
+              className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-light to-brand-subtle
+              flex items-center justify-center">
+              <span className="text-[32px] font-extrabold text-brand/30">{initials}</span>
+            </div>
+          )}
+        </div>
+        {/* Инфо справа */}
+        <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
+          <div>
+            <p className="text-[10px] font-bold text-brand tracking-[0.15em] uppercase">
+              {doctor.specialty as string}
+            </p>
+            <h3 className="text-[16px] font-extrabold mt-1.5 leading-tight">{first}</h3>
+            <p className="text-[16px] font-extrabold leading-tight">{lastName}</p>
+          </div>
+          <div className="flex items-center gap-1 text-brand">
+            <span className="text-[11px] font-semibold">Подробнее</span>
+            <ArrowRight size={12} />
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ═══ Раскрытая карточка inline: вертикальное фото во всю ширину ═══ */
 function DoctorExpanded({ doctor, onClose }: { doctor: Record<string, unknown>; onClose: () => void }) {
   const name = (doctor.user as Record<string, unknown>)?.name as string || '';
   const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);
@@ -116,44 +110,71 @@ function DoctorExpanded({ doctor, onClose }: { doctor: Record<string, unknown>; 
     : [];
 
   return (
-    <div className="bg-bg-card rounded-xl shadow-elevated overflow-hidden">
-      {/* Hero портрет */}
-      <div className="aspect-[16/9] relative bg-brand-light">
+    <div className="bg-bg-card rounded-xl shadow-elevated overflow-hidden animate-fade-in">
+      {/* БОЛЬШОЕ вертикальное фото 3:4 */}
+      <div className="aspect-portrait relative bg-ink">
         {doctor.photoPath ? (
           <img src={`/api/uploads/${doctor.photoPath}`} alt={name}
-            className="w-full h-full object-cover" />
+            className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-[80px] font-extrabold text-brand/30">{initials}</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-light to-brand-subtle
+            flex items-center justify-center">
+            <span className="text-[120px] font-extrabold text-brand/25">{initials}</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
+        {/* Сильный градиент для читаемости */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/15" />
+
+        {/* Закрыть */}
         <button onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-lg
-            border border-white/30 flex items-center justify-center active:scale-95">
-          <X size={16} className="text-white" />
+          className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/15 backdrop-blur-lg
+            border border-white/25 flex items-center justify-center active:scale-95">
+          <X size={18} className="text-white" />
         </button>
 
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <p className="text-[10px] font-bold text-white/80 tracking-[0.15em] uppercase mb-1">
-            {doctor.specialty as string}
-          </p>
-          <h3 className="text-[22px] font-extrabold text-white leading-tight tracking-tight">{name}</h3>
+        {/* Бейдж специальности */}
+        <div className="absolute top-5 left-5">
+          <div className="bg-white/15 backdrop-blur-lg border border-white/25
+            px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <Stethoscope size={11} className="text-white" />
+            <p className="text-[10px] font-bold text-white tracking-wide uppercase">
+              {doctor.specialty as string}
+            </p>
+          </div>
+        </div>
+
+        {/* Имя + CTA поверх фото */}
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <h2 className="text-[32px] font-extrabold text-white leading-[1.05] tracking-tight">
+            {name}
+          </h2>
+
+          <Link href={`/booking?staffId=${doctor.id}`}
+            className="mt-5 inline-flex items-center gap-2 bg-brand text-white
+              px-6 py-3 rounded-md text-[14px] font-bold shadow-button
+              active:scale-[0.97] transition-transform">
+            Записаться <ArrowRight size={15} />
+          </Link>
         </div>
       </div>
 
-      <div className="p-5">
+      {/* Инфо под фото */}
+      <div className="p-6">
         {doctor.bio && (
           <div className="mb-6">
-            <p className="text-[10px] text-ink-tertiary font-bold uppercase tracking-[0.1em] mb-2">О враче</p>
+            <p className="text-[10px] text-ink-tertiary font-bold uppercase tracking-[0.12em] mb-3">
+              О враче
+            </p>
             <p className="text-[14px] text-ink leading-relaxed">{doctor.bio as string}</p>
           </div>
         )}
 
         {days.length > 0 && (
-          <div className="mb-5">
-            <p className="text-[10px] text-ink-tertiary font-bold uppercase tracking-[0.1em] mb-3">График работы</p>
+          <div>
+            <p className="text-[10px] text-ink-tertiary font-bold uppercase tracking-[0.12em] mb-3">
+              График работы
+            </p>
             <div className="bg-brand-subtle rounded-md overflow-hidden">
               {days.map(({ day, start, end }, i) => (
                 <div key={day}
@@ -166,12 +187,6 @@ function DoctorExpanded({ doctor, onClose }: { doctor: Record<string, unknown>; 
             </div>
           </div>
         )}
-
-        <Link href={`/booking?staffId=${doctor.id}`}
-          className="flex items-center justify-center gap-2 bg-brand text-white w-full
-            py-3 rounded-md text-[14px] font-bold shadow-button active:scale-[0.97] transition-transform">
-          Записаться <ArrowRight size={14} />
-        </Link>
       </div>
     </div>
   );

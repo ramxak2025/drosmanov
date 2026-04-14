@@ -2,13 +2,14 @@ import { Controller, Get, Patch, Body, Query } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @Controller('settings')
 export class SettingsController {
   constructor(private service: SettingsService) {}
 
+  @Public()
   @Get()
-  @Roles('OWNER')
   get() {
     return this.service.get();
   }

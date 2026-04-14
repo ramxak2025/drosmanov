@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   ArrowRight, Phone, MapPin, Clock, ChevronRight, Star,
-  Gift, Calendar, FileText, Bell, CreditCard, Heart, Shield, Award,
+  Gift, Calendar, FileText, Bell, CreditCard,
+  Shield, Sparkles, Zap, HeartHandshake,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -21,13 +22,19 @@ export default function HomePage() {
     queryKey: ['staff'],
     queryFn: async () => { const { data } = await api.get('/staff'); return data.data; },
   });
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => { const { data } = await api.get('/settings'); return data.data; },
+  });
 
   const cats = [...new Set((services || []).map((s: Record<string, unknown>) => s.category as string))];
+  const mapLat = settings?.mapLat || 42.9849;
+  const mapLng = settings?.mapLng || 47.5049;
 
   return (
     <div>
 
-      {/* ═══ Hero ═══ */}
+      {/* 1️⃣ ═══ HERO ═══ */}
       <section className="relative h-[460px] overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=700&fit=crop&q=85"
@@ -55,7 +62,7 @@ export default function HomePage() {
               shadow-button flex items-center gap-2 active:scale-[0.97] transition-transform">
               Записаться <ArrowRight size={16} />
             </Link>
-            <a href="tel:+78722123456"
+            <a href={`tel:${settings?.phone || '+78722123456'}`}
               className="bg-white/12 backdrop-blur-md text-white px-5 py-4 rounded-md
               text-[15px] font-semibold border border-white/20
               active:scale-[0.97] transition-transform flex items-center gap-2">
@@ -65,18 +72,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ Преимущества ═══ */}
-      <section className="px-6 mt-8">
-        <div className="grid grid-cols-3 gap-3">
-          <Stat icon={Award} title="12 лет" sub="опыта" />
-          <Stat icon={Heart} title="5 000+" sub="пациентов" />
-          <Stat icon={Shield} title="98%" sub="довольны" />
-        </div>
-      </section>
-
-      {/* ═══ Акции ═══ */}
+      {/* 2️⃣ ═══ Акции (конверсия сразу) ═══ */}
       {promotions && promotions.length > 0 && (
-        <section className="mt-14">
+        <section className="mt-12">
           <div className="px-6 flex items-baseline justify-between mb-5">
             <h2 className="text-h2">Акции</h2>
             <Link href="/promos" className="text-sm text-brand font-semibold flex items-center gap-0.5">
@@ -89,19 +87,19 @@ export default function HomePage() {
                 <div className="bg-gradient-to-br from-brand-light to-brand-subtle rounded-lg p-6 h-full
                   relative border border-brand/10 overflow-hidden">
                   <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-brand/10" />
-                  {p.discount && (
+                  {p.discount ? (
                     <span className="absolute top-5 right-5 bg-status-red text-white text-[11px] font-extrabold
                       w-10 h-10 rounded-full flex items-center justify-center shadow-md">
-                      -{p.discount as number}%
+                      −{p.discount as number}%
                     </span>
-                  )}
+                  ) : null}
                   <span className="text-[10px] font-bold text-brand-dark tracking-[0.15em] uppercase">
                     Спецпредложение
                   </span>
                   <h3 className="text-[16px] font-extrabold pr-10 mt-3 leading-snug">{p.title as string}</h3>
-                  {p.description && (
+                  {p.description ? (
                     <p className="text-[13px] text-ink-secondary mt-2 line-clamp-2 relative z-10">{p.description as string}</p>
-                  )}
+                  ) : null}
                 </div>
               </Link>
             ))}
@@ -109,34 +107,8 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ═══ Бонусная программа (NEW) ═══ */}
-      <section className="px-6 mt-14">
-        <div className="relative bg-gradient-to-br from-ink via-ink to-brand-dark rounded-xl p-7 overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-brand/20 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-brand/10 blur-2xl" />
-
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full mb-5">
-              <Gift size={12} className="text-brand-muted" />
-              <span className="text-[10px] font-bold text-white/90 tracking-widest uppercase">Скоро запуск</span>
-            </div>
-            <h2 className="text-[24px] font-extrabold text-white leading-tight">
-              Бонусная<br />программа
-            </h2>
-            <p className="text-[14px] text-white/70 mt-3 leading-relaxed max-w-[280px]">
-              Получайте 5% с&nbsp;каждого визита и&nbsp;тратьте их&nbsp;на&nbsp;следующие услуги
-            </p>
-            <div className="grid grid-cols-3 gap-2 mt-6">
-              <BonusStep n="1" t="Посещение" />
-              <BonusStep n="2" t="Бонусы" />
-              <BonusStep n="3" t="Скидка" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Цены и запись ═══ */}
-      <section className="px-6 mt-14">
+      {/* 3️⃣ ═══ Цены и запись (главное действие) ═══ */}
+      <section className="px-6 mt-12">
         <div className="flex items-baseline justify-between mb-5">
           <h2 className="text-h2">Цены и запись</h2>
           <Link href="/price" className="text-sm text-brand font-semibold flex items-center gap-0.5">
@@ -160,8 +132,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ Врачи ═══ */}
-      <section className="mt-14">
+      {/* 4️⃣ ═══ Врачи (доверие) ═══ */}
+      <section className="mt-12">
         <div className="px-6 flex items-baseline justify-between mb-5">
           <h2 className="text-h2">Врачи</h2>
           <Link href="/doctors" className="text-sm text-brand font-semibold flex items-center gap-0.5">
@@ -178,7 +150,6 @@ export default function HomePage() {
               <Link key={s.id as string} href="/doctors" className="flex-shrink-0 w-[140px]">
                 <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
                   active:scale-[0.97] transition-transform">
-                  {/* Вертикальное фото 3:4 */}
                   <div className="aspect-portrait bg-brand-light">
                     {s.photoPath ? (
                       <img src={`/api/uploads/${s.photoPath}`} alt={name} className="w-full h-full object-cover" />
@@ -199,15 +170,80 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══ Возможности после регистрации ═══ */}
-      <section className="px-6 mt-14">
+      {/* 5️⃣ ═══ Отзывы (social proof) ═══ */}
+      <section className="px-6 mt-12">
+        <h2 className="text-h2 mb-5">Отзывы пациентов</h2>
+        <div className="stack">
+          <Review name="Амина К." text="Отличная клиника! Врачи внимательные, всё объяснили. Лечила кариес безболезненно." />
+          <Review name="Руслан М." text="Делал чистку — результат превосходный. Записался на следующий раз." />
+          <Review name="Патимат Г." text="Спасибо за профессионализм! Наконец-то нашла своего стоматолога." />
+        </div>
+      </section>
+
+      {/* 6️⃣ ═══ Наши принципы (вместо статистики) ═══ */}
+      <section className="px-6 mt-12">
+        <p className="text-[11px] font-bold text-brand tracking-[0.15em] uppercase mb-3">
+          Наши принципы
+        </p>
+        <h2 className="text-h2 mb-6">Как мы работаем</h2>
+        <div className="stack">
+          <Principle
+            icon={Shield}
+            title="Европейский стандарт"
+            text="Стерилизация инструментов, одноразовые материалы, соблюдение всех протоколов безопасности"
+          />
+          <Principle
+            icon={Sparkles}
+            title="Современное оборудование"
+            text="3D-томограф, цифровой рентген, лазерные технологии и микроскопы последнего поколения"
+          />
+          <Principle
+            icon={Zap}
+            title="Безболезненное лечение"
+            text="Используем современные анестетики и щадящие методики. Без страха и дискомфорта"
+          />
+          <Principle
+            icon={HeartHandshake}
+            title="Индивидуальный подход"
+            text="Составляем план лечения специально для вас, объясняем каждый шаг"
+          />
+        </div>
+      </section>
+
+      {/* 7️⃣ ═══ Бонусная программа (вовлечение) ═══ */}
+      <section className="px-6 mt-12">
+        <div className="relative bg-gradient-to-br from-ink via-ink to-brand-dark rounded-xl p-7 overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-brand/20 blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-brand/10 blur-2xl" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full mb-5">
+              <Gift size={12} className="text-brand-muted" />
+              <span className="text-[10px] font-bold text-white/90 tracking-widest uppercase">Скоро запуск</span>
+            </div>
+            <h2 className="text-[24px] font-extrabold text-white leading-tight">
+              Бонусная<br />программа
+            </h2>
+            <p className="text-[14px] text-white/70 mt-3 leading-relaxed max-w-[280px]">
+              Получайте 5% с&nbsp;каждого визита и&nbsp;тратьте их&nbsp;на&nbsp;следующие услуги
+            </p>
+            <div className="grid grid-cols-3 gap-2 mt-6">
+              <BonusStep n="1" t="Посещение" />
+              <BonusStep n="2" t="Бонусы" />
+              <BonusStep n="3" t="Скидка" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8️⃣ ═══ Личный кабинет ═══ */}
+      <section className="px-6 mt-12">
         <h2 className="text-h2 mb-2">Личный кабинет</h2>
         <p className="text-[14px] text-ink-secondary mb-6">Зарегистрируйтесь и&nbsp;получите доступ к&nbsp;возможностям</p>
 
         <div className="stack">
           <Feature icon={Calendar} title="Запись онлайн" text="Записывайтесь на приём в удобное время" />
           <Feature icon={FileText} title="История визитов" text="Все ваши приёмы и результаты в одном месте" />
-          <Feature icon={CreditCard} title="Бонусный счёт" text="Копите и тратьте бонусы на услуги" />
+          <Feature icon={CreditCard} title="Снимки и заключения" text="Доступ к рентгенам и записям врачей" />
           <Feature icon={Bell} title="Напоминания" text="Уведомления за день до записи" />
         </div>
 
@@ -218,38 +254,31 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* ═══ Отзывы ═══ */}
-      <section className="px-6 mt-14">
-        <h2 className="text-h2 mb-5">Отзывы</h2>
-        <div className="stack">
-          <Review name="Амина К." text="Отличная клиника! Врачи внимательные, всё объяснили. Лечила кариес безболезненно." />
-          <Review name="Руслан М." text="Делал чистку — результат превосходный. Записался на следующий раз." />
-          <Review name="Патимат Г." text="Спасибо за профессионализм! Наконец-то нашла своего стоматолога." />
-        </div>
-      </section>
-
-      {/* ═══ Контакты ═══ */}
-      <section className="px-6 mt-14">
+      {/* 9️⃣ ═══ Контакты ═══ */}
+      <section className="px-6 mt-12">
         <h2 className="text-h2 mb-5">Контакты</h2>
         <div className="bg-bg-card rounded-lg shadow-card overflow-hidden">
           <iframe
-            src="https://yandex.ru/map-widget/v1/?ll=47.5049,42.9849&z=15&pt=47.5049,42.9849,pm2rdm"
+            src={`https://yandex.ru/map-widget/v1/?ll=${mapLng},${mapLat}&z=15&pt=${mapLng},${mapLat},pm2rdm`}
             width="100%" height="200" frameBorder="0" style={{ border: 0, display: 'block' }} />
           <div className="p-5 stack-md">
-            <InfoRow icon={MapPin} text="г. Махачкала, ул. Ярагского, 45" />
-            <InfoRow icon={Phone} text="+7 (8722) 12-34-56" href="tel:+78722123456" />
-            <InfoRow icon={Clock} text="Пн–Пт 9:00–19:00 · Сб 10:00–14:00" />
+            <InfoRow icon={MapPin} text={settings?.address || 'г. Махачкала, ул. Ярагского, 45'} />
+            <InfoRow icon={Phone} text={settings?.phone || '+7 (8722) 12-34-56'} href={`tel:${settings?.phone || '+78722123456'}`} />
+            <InfoRow icon={Clock} text={settings?.workHours || 'Пн–Пт 9:00–19:00 · Сб 10:00–14:00'} />
           </div>
         </div>
       </section>
 
-      {/* ═══ CTA ═══ */}
-      <section className="px-6 mt-14 pb-6">
+      {/* 🔟 ═══ CTA Footer ═══ */}
+      <section className="px-6 mt-12 pb-6">
         <Link href="/price"
           className="flex items-center justify-center gap-2 bg-brand text-white w-full
           py-[18px] rounded-md text-[15px] font-bold shadow-button active:scale-[0.98] transition-transform">
           Записаться на приём <ArrowRight size={16} />
         </Link>
+        <p className="text-center text-sm text-ink-tertiary mt-3">
+          Или позвоните: <a href={`tel:${settings?.phone || '+78722123456'}`} className="text-brand font-semibold">{settings?.phone || '+7 (8722) 12-34-56'}</a>
+        </p>
       </section>
 
     </div>
@@ -258,16 +287,6 @@ export default function HomePage() {
 
 /* ── Компоненты ── */
 
-function Stat({ icon: Icon, title, sub }: { icon: React.ElementType; title: string; sub: string }) {
-  return (
-    <div className="bg-bg-card rounded-md shadow-card p-4 text-center">
-      <Icon size={18} className="text-brand mx-auto mb-2" strokeWidth={2.2} />
-      <p className="text-[15px] font-extrabold">{title}</p>
-      <p className="text-[11px] text-ink-tertiary mt-0.5">{sub}</p>
-    </div>
-  );
-}
-
 function BonusStep({ n, t }: { n: string; t: string }) {
   return (
     <div className="bg-white/8 backdrop-blur-md rounded-md p-3 text-center">
@@ -275,6 +294,20 @@ function BonusStep({ n, t }: { n: string; t: string }) {
         <span className="text-[10px] font-extrabold text-white">{n}</span>
       </div>
       <p className="text-[11px] font-semibold text-white/90">{t}</p>
+    </div>
+  );
+}
+
+function Principle({ icon: Icon, title, text }: { icon: React.ElementType; title: string; text: string }) {
+  return (
+    <div className="bg-bg-card rounded-lg shadow-card p-5 flex items-start gap-4">
+      <div className="w-11 h-11 rounded-md bg-brand-subtle flex items-center justify-center flex-shrink-0">
+        <Icon size={20} className="text-brand-dark" strokeWidth={1.8} />
+      </div>
+      <div>
+        <p className="text-[15px] font-bold">{title}</p>
+        <p className="text-[13px] text-ink-secondary mt-1.5 leading-relaxed">{text}</p>
+      </div>
     </div>
   );
 }

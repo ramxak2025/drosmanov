@@ -158,46 +158,7 @@ export class AppointmentsService {
       throw new BadRequestException('Укажите причину отмены');
     }
 
-    // Автоматическое начисление бонусов при завершении визита
-    if (dto.status === 'COMPLETED') {
-      const full = await this.prisma.appointment.findUniqueOrThrow({
-        where: { id },
-        include: { service: true, client: true },
-      });
-
-      // Если бонусы ещё не были начислены за этот визит
-      const existingTx = await this.prisma.bonusTransaction.findFirst({
-        where: {
-          clientId: full.clientId,
-          reason: `Начисление за приём ${id}`,
-        },
-      });
-
-      if (!existingTx) {
-        const settings = await this.prisma.clinicSettings.findUnique({
-          where: { id: 'singleton' },
-        });
-        const bonusPercent = settings?.bonusPercent || 5;
-        const bonusEarned = Math.floor(full.service.price * bonusPercent / 100);
-
-        if (bonusEarned > 0) {
-          await this.prisma.$transaction([
-            this.prisma.client.update({
-              where: { id: full.clientId },
-              data: { bonusBalance: { increment: bonusEarned } },
-            }),
-            this.prisma.bonusTransaction.create({
-              data: {
-                clientId: full.clientId,
-                amount: bonusEarned,
-                type: 'EARN',
-                reason: `Начисление за приём ${id}`,
-              },
-            }),
-          ]);
-        }
-      }
-    }
+    // Бонусная система будет запущена позже
 
     return this.prisma.appointment.update({
       where: { id },
