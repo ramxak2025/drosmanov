@@ -18,7 +18,7 @@ export function BottomNav({ tabs }: { tabs: Tab[] }) {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav">
       <div className="max-w-[430px] mx-auto flex items-center justify-around h-16">
         {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.href);
+          const isActive = tab.href === '/' ? pathname === '/' : pathname.startsWith(tab.href);
           const Icon = tab.icon;
 
           return (

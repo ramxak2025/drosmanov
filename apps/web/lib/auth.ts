@@ -44,7 +44,7 @@ export function useAuth() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('user');
     setUser(null);
-    router.push('/login');
+    router.push('/');
   };
 
   return { user, loading, login, logout };
