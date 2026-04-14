@@ -1,6 +1,22 @@
-import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { CreateMedRecordDto } from './create-med-record.dto';
+import { IsString, IsOptional, IsObject, MaxLength } from 'class-validator';
 
-export class UpdateMedRecordDto extends PartialType(
-  OmitType(CreateMedRecordDto, ['clientId'] as const),
-) {}
+export class UpdateMedRecordDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  diagnosis?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  treatment?: string;
+
+  @IsOptional()
+  @IsObject()
+  teethMap?: Record<string, string>;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  notes?: string;
+}
