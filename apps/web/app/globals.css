@@ -8,47 +8,45 @@
   :root {
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
-    --tab-bar-height: calc(64px + var(--safe-bottom));
+    --nav-height: 84px;
   }
 
-  * { -webkit-tap-highlight-color: transparent; }
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
 
   body {
     background-color: #FAF8F5;
     color: #2C2218;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
 
   html { height: -webkit-fill-available; }
   body { min-height: -webkit-fill-available; }
+
+  /* Scrollbar hide for horizontal scroll */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @layer components {
   .glass-card {
-    background: rgba(242, 237, 230, 0.72);
+    background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(20px) saturate(1.8);
     -webkit-backdrop-filter: blur(20px) saturate(1.8);
-    border: 1px solid #E0D8CE;
+    border: 1px solid rgba(224, 216, 206, 0.5);
     border-radius: 20px;
-    box-shadow: 0 4px 24px rgba(44,34,24,0.06);
-  }
-
-  .bottom-nav {
-    background: rgba(242, 237, 230, 0.88);
-    backdrop-filter: blur(24px) saturate(1.8);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    border-top: 1px solid #E0D8CE;
-    padding-bottom: var(--safe-bottom);
-    height: var(--tab-bar-height);
+    box-shadow: 0 2px 16px rgba(44,34,24,0.04);
   }
 
   .page-container {
     max-width: 430px;
     margin: 0 auto;
-    padding-bottom: calc(var(--tab-bar-height) + 16px);
-    padding-top: calc(var(--safe-top) + 16px);
+    padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 8px);
     min-height: 100dvh;
   }
 }

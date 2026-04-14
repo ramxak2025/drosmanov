@@ -4,20 +4,19 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { BottomNav } from './BottomNav';
 import {
-  CalendarDays, Users, Tag, LogIn,
-  Home, FileText, User, Banknote,
-  LayoutDashboard, ListChecks, Settings,
+  Home, CalendarDays, Users, MapPin, LogIn,
+  FileText, User, Banknote,
+  LayoutDashboard, ListChecks, Tag, Settings,
 } from 'lucide-react';
 
-// Публичное меню (без авторизации)
 const publicTabs = [
-  { href: '/', label: 'Услуги', icon: CalendarDays },
+  { href: '/', label: 'Главная', icon: Home },
+  { href: '/price', label: 'Прайс', icon: CalendarDays },
   { href: '/doctors', label: 'Врачи', icon: Users },
-  { href: '/promos', label: 'Акции', icon: Tag },
-  { href: '/login', label: 'Вход', icon: LogIn },
+  { href: '/contacts', label: 'Контакты', icon: MapPin },
+  { href: '/login', label: 'ЛК', icon: LogIn },
 ];
 
-// Меню клиента
 const clientTabs = [
   { href: '/client/home', label: 'Главная', icon: Home },
   { href: '/client/booking', label: 'Запись', icon: CalendarDays },
@@ -25,7 +24,6 @@ const clientTabs = [
   { href: '/client/profile', label: 'Профиль', icon: User },
 ];
 
-// Меню сотрудника
 const staffTabs = [
   { href: '/staff/schedule', label: 'Расписание', icon: CalendarDays },
   { href: '/staff/patients', label: 'Пациенты', icon: Users },
@@ -33,7 +31,6 @@ const staffTabs = [
   { href: '/client/profile', label: 'Профиль', icon: User },
 ];
 
-// Меню владельца
 const ownerTabs = [
   { href: '/owner/dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { href: '/owner/services', label: 'Услуги', icon: ListChecks },
@@ -46,8 +43,11 @@ export function AppNav() {
   const [tabs, setTabs] = useState(publicTabs);
 
   useEffect(() => {
+    // На публичных страницах — всегда публичное меню
+    const isPublic = ['/', '/price', '/doctors', '/promos', '/contacts', '/login'].includes(pathname);
+
     const stored = localStorage.getItem('user');
-    if (!stored) {
+    if (!stored || isPublic) {
       setTabs(publicTabs);
       return;
     }
@@ -64,7 +64,6 @@ export function AppNav() {
     }
   }, [pathname]);
 
-  // Скрыть навигацию на странице логина
   if (pathname === '/login') return null;
 
   return <BottomNav tabs={tabs} />;
