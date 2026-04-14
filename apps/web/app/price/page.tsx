@@ -1,14 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Clock, ArrowRight } from 'lucide-react';
+import { ChevronRight, Clock } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 
 export default function PricePage() {
+  return (
+    <Suspense fallback={<div className="pt-3"><h1 className="text-[22px] font-bold">Цены</h1></div>}>
+      <PriceContent />
+    </Suspense>
+  );
+}
+
+function PriceContent() {
   const searchParams = useSearchParams();
   const initialCat = searchParams.get('cat') || null;
   const [activeCat, setActiveCat] = useState<string | null>(initialCat);
