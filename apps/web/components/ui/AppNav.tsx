@@ -11,7 +11,7 @@ import {
 
 const publicTabs = [
   { href: '/', label: 'Главная', icon: Home },
-  { href: '/price', label: 'Прайс', icon: CalendarDays },
+  { href: '/price', label: 'Цены', icon: CalendarDays },
   { href: '/doctors', label: 'Врачи', icon: Users },
   { href: '/contacts', label: 'Контакты', icon: MapPin },
   { href: '/login', label: 'ЛК', icon: LogIn },

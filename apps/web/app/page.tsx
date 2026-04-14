@@ -3,8 +3,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Phone, MapPin, Clock, ChevronRight, Sparkles } from 'lucide-react';
+import { Phone, MapPin, Clock, ChevronRight, Sparkles, ArrowRight } from 'lucide-react';
 import api from '@/lib/api';
+
+const fadeUp = {
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+};
 
 export default function HomePage() {
   const { data: services } = useQuery({
@@ -22,66 +27,69 @@ export default function HomePage() {
     queryFn: async () => { const { data } = await api.get('/staff'); return data.data; },
   });
 
-  const grouped: Record<string, Record<string, unknown>[]> = {};
-  (services || []).forEach((s: Record<string, unknown>) => {
-    const cat = s.category as string;
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(s);
-  });
+  // Категории для быстрого доступа к ценам/записи
+  const categories = [...new Set((services || []).map((s: Record<string, unknown>) => s.category as string))];
 
   return (
-    <div className="space-y-10 -mx-4">
+    <div className="-mx-4">
 
-      {/* ─── Hero ─── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/8 via-background to-primary/5 px-6 pt-12 pb-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center mb-5">
-            <span className="text-xl font-bold text-primary">DO</span>
-          </div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight">
+      {/* ═══ Hero ═══ */}
+      <section className="relative px-6 pt-14 pb-12 bg-gradient-to-b from-primary/[0.06] to-transparent">
+        <motion.div {...fadeUp} transition={{ duration: 0.5 }}>
+          <p className="text-[13px] font-medium text-primary tracking-wide uppercase mb-3">Стоматология</p>
+          <h1 className="text-[32px] font-extrabold leading-[1.15] tracking-tight">
             Dr. Osmanov
           </h1>
-          <p className="text-base text-text-secondary mt-2 leading-relaxed max-w-[300px]">
-            Современная стоматология с заботой о каждом пациенте
+          <p className="text-[15px] text-text-secondary mt-3 leading-relaxed max-w-[320px]">
+            Современная клиника с&nbsp;заботой о&nbsp;каждом пациенте
           </p>
-          <div className="flex gap-3 mt-6">
-            <Link href="/client/booking" className="bg-primary text-white px-6 py-3.5 rounded-2xl text-sm font-semibold shadow-lg shadow-primary/25 active:scale-[0.97] transition-transform">
-              Записаться
-            </Link>
-            <a href="tel:+78722123456" className="bg-white/80 backdrop-blur text-text px-5 py-3.5 rounded-2xl text-sm font-medium border border-border/50 active:scale-[0.97] transition-transform">
-              Позвонить
-            </a>
-          </div>
         </motion.div>
 
-        {/* Decorative circles */}
-        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-primary/5" />
-        <div className="absolute -right-5 bottom-0 w-24 h-24 rounded-full bg-primary/8" />
+        <motion.div {...fadeUp} transition={{ delay: 0.15, duration: 0.5 }} className="flex gap-3 mt-8">
+          <Link href="/price"
+            className="bg-primary text-white px-7 py-[14px] rounded-[16px] text-[15px] font-semibold
+            shadow-[0_8px_24px_rgba(201,169,110,0.3)] active:scale-[0.97] transition-transform
+            flex items-center gap-2">
+            Записаться <ArrowRight size={16} strokeWidth={2.5} />
+          </Link>
+          <a href="tel:+78722123456"
+            className="bg-white text-text px-6 py-[14px] rounded-[16px] text-[15px] font-medium
+            border border-border/60 shadow-[0_2px_8px_rgba(0,0,0,0.04)]
+            active:scale-[0.97] transition-transform">
+            Позвонить
+          </a>
+        </motion.div>
+
+        {/* Декор */}
+        <div className="absolute right-0 top-8 w-32 h-32 rounded-full bg-primary/[0.04] -z-10" />
+        <div className="absolute right-8 top-28 w-16 h-16 rounded-full bg-primary/[0.06] -z-10" />
       </section>
 
-      {/* ─── Promotions banner ─── */}
+      {/* ═══ Акции (если есть) ═══ */}
       {promotions && promotions.length > 0 && (
-        <section className="px-4">
-          <SectionHeader title="Акции" link="/promos" />
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
+        <section className="mt-2 mb-2">
+          <div className="px-6 mb-4">
+            <SectionTitle title="Акции" link="/promos" />
+          </div>
+          <div className="flex gap-3 overflow-x-auto px-6 pb-1 scrollbar-hide snap-x snap-mandatory">
             {promotions.slice(0, 5).map((p: Record<string, unknown>, i: number) => (
               <motion.div
                 key={p.id as string}
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="flex-shrink-0 w-[280px] snap-start"
+                transition={{ delay: i * 0.08 }}
+                className="flex-shrink-0 w-[260px] snap-start"
               >
-                <div className="relative bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl p-5 border border-primary/10 h-full">
+                <div className="bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] rounded-[20px] p-5 border border-primary/[0.08] h-full relative overflow-hidden">
                   {p.discount && (
-                    <div className="absolute top-4 right-4 bg-error text-white text-xs font-bold w-10 h-10 rounded-full flex items-center justify-center">
+                    <div className="absolute top-4 right-4 bg-[#E84D4D] text-white text-[11px] font-bold w-9 h-9 rounded-full flex items-center justify-center shadow-sm">
                       -{p.discount as number}%
                     </div>
                   )}
-                  <Sparkles size={20} className="text-primary mb-2" />
-                  <h3 className="font-semibold text-[15px] pr-10">{p.title as string}</h3>
+                  <Sparkles size={18} className="text-primary mb-3" />
+                  <h3 className="font-semibold text-[14px] leading-snug pr-8">{p.title as string}</h3>
                   {p.description && (
-                    <p className="text-xs text-text-secondary mt-1.5 line-clamp-2">{p.description as string}</p>
+                    <p className="text-[12px] text-text-secondary mt-2 line-clamp-2 leading-relaxed">{p.description as string}</p>
                   )}
                 </div>
               </motion.div>
@@ -90,120 +98,82 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ─── Doctors ─── */}
-      <section className="px-4">
-        <SectionHeader title="Наши врачи" link="/doctors" />
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
-          {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>, i: number) => (
-            <motion.div
-              key={s.id as string}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="flex-shrink-0 w-[200px] snap-start"
-            >
-              <div className="bg-surface/80 rounded-3xl p-4 border border-border/50 text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-lg font-bold text-primary">
-                    {((s.user as Record<string, unknown>)?.name as string || '').split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                  </span>
-                </div>
-                <p className="font-semibold text-sm">{(s.user as Record<string, unknown>)?.name as string}</p>
-                <p className="text-xs text-primary mt-0.5">{s.specialty as string}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Price list ─── */}
-      <section className="px-4">
-        <SectionHeader title="Прайс-лист" link="/price" />
-        {Object.entries(grouped).slice(0, 3).map(([category, items]) => (
-          <div key={category} className="mb-5">
-            <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-2.5">{category}</h3>
-            <div className="bg-surface/60 rounded-3xl border border-border/40 overflow-hidden divide-y divide-border/40">
-              {items.map((s) => (
-                <div key={s.id as string} className="flex justify-between items-center px-5 py-3.5">
-                  <div>
-                    <p className="text-[14px] font-medium">{s.name as string}</p>
-                    <p className="text-[11px] text-text-secondary mt-0.5">{s.duration as number} мин</p>
+      {/* ═══ Категории услуг (цены = запись) ═══ */}
+      <section className="px-6 mt-8">
+        <SectionTitle title="Цены и запись" link="/price" />
+        <div className="grid grid-cols-2 gap-3">
+          {categories.map((cat, i) => {
+            const count = (services || []).filter((s: Record<string, unknown>) => s.category === cat).length;
+            return (
+              <motion.div key={cat} {...fadeUp} transition={{ delay: 0.05 * i }}>
+                <Link href={`/price?cat=${encodeURIComponent(cat)}`}>
+                  <div className="bg-white rounded-[18px] border border-border/40 p-4 h-full
+                    shadow-[0_1px_4px_rgba(0,0,0,0.03)]
+                    active:scale-[0.97] active:shadow-none transition-all">
+                    <p className="font-semibold text-[14px]">{cat}</p>
+                    <p className="text-[12px] text-text-secondary mt-1">{count} {declension(count, ['услуга', 'услуги', 'услуг'])}</p>
+                    <ChevronRight size={16} className="text-primary mt-3" />
                   </div>
-                  <span className="text-[14px] font-semibold text-primary tabular-nums">
-                    {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')} \u20BD`}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-        <Link href="/price" className="flex items-center justify-center gap-1 text-sm text-primary font-medium py-2">
-          Полный прайс-лист <ChevronRight size={16} />
-        </Link>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
       </section>
 
-      {/* ─── Contacts ─── */}
-      <section className="px-4">
-        <SectionHeader title="Контакты" />
-        <div className="bg-surface/60 rounded-3xl border border-border/40 overflow-hidden">
-          {/* Yandex Map */}
-          <div className="h-[200px] bg-border/30">
+      {/* ═══ Врачи ═══ */}
+      <section className="mt-10">
+        <div className="px-6 mb-4">
+          <SectionTitle title="Врачи" link="/doctors" />
+        </div>
+        <div className="flex gap-3 overflow-x-auto px-6 pb-1 scrollbar-hide snap-x snap-mandatory">
+          {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>, i: number) => {
+            const name = (s.user as Record<string, unknown>)?.name as string || '';
+            const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2);
+            return (
+              <motion.div key={s.id as string} {...fadeUp} transition={{ delay: i * 0.08 }}
+                className="flex-shrink-0 w-[160px] snap-start">
+                <Link href="/doctors">
+                  <div className="bg-white rounded-[20px] border border-border/40 p-4 text-center
+                    shadow-[0_1px_4px_rgba(0,0,0,0.03)] active:scale-[0.97] transition-transform">
+                    <div className="w-14 h-14 rounded-full bg-primary/[0.08] flex items-center justify-center mx-auto mb-3">
+                      <span className="text-[15px] font-bold text-primary">{initials}</span>
+                    </div>
+                    <p className="font-semibold text-[13px] leading-snug">{name.split(' ').slice(0, 2).join(' ')}</p>
+                    <p className="text-[11px] text-primary font-medium mt-1">{s.specialty as string}</p>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ═══ Контакты ═══ */}
+      <section className="px-6 mt-10">
+        <SectionTitle title="Контакты" link="/contacts" />
+        <div className="bg-white rounded-[20px] border border-border/40 overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+          <div className="h-[180px]">
             <iframe
-              src="https://yandex.ru/map-widget/v1/?um=constructor%3A..&source=constructor&ll=47.5049,42.9849&z=16&pt=47.5049,42.9849,pm2rdm"
-              width="100%"
-              height="200"
-              frameBorder="0"
-              style={{ border: 0 }}
-              allowFullScreen
-            />
+              src="https://yandex.ru/map-widget/v1/?ll=47.5049,42.9849&z=15&pt=47.5049,42.9849,pm2rdm"
+              width="100%" height="180" frameBorder="0" style={{ border: 0, display: 'block' }} />
           </div>
-
           <div className="p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <MapPin size={18} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-text-secondary">Адрес</p>
-                <p className="text-sm font-medium">г. Махачкала, ул. Ярагского, 45</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Phone size={18} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-text-secondary">Телефон</p>
-                <a href="tel:+78722123456" className="text-sm font-medium">+7 (8722) 12-34-56</a>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Clock size={18} className="text-primary" />
-              </div>
-              <div>
-                <p className="text-xs text-text-secondary">Режим работы</p>
-                <p className="text-sm font-medium">Пн-Пт: 9:00 — 19:00</p>
-                <p className="text-sm font-medium">Сб: 10:00 — 14:00</p>
-              </div>
-            </div>
-
-            {/* Social links */}
-            <div className="flex gap-2 pt-1">
-              <SocialButton label="WhatsApp" href="https://wa.me/78722123456" color="bg-[#25D366]/10 text-[#25D366]" />
-              <SocialButton label="Telegram" href="https://t.me/drosmanov" color="bg-[#2AABEE]/10 text-[#2AABEE]" />
-              <SocialButton label="Instagram" href="https://instagram.com/drosmanov" color="bg-[#E4405F]/10 text-[#E4405F]" />
-            </div>
+            <InfoRow icon={MapPin} label="г. Махачкала, ул. Ярагского, 45" />
+            <InfoRow icon={Phone} label="+7 (8722) 12-34-56" href="tel:+78722123456" />
+            <InfoRow icon={Clock} label="Пн-Пт 9-19, Сб 10-14" />
           </div>
         </div>
       </section>
 
-      {/* ─── CTA ─── */}
-      <section className="px-4 pb-4">
-        <Link href="/client/booking" className="block bg-primary text-white text-center py-4 rounded-3xl text-[15px] font-semibold shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+      {/* ═══ CTA Footer ═══ */}
+      <section className="px-6 mt-10 pb-6">
+        <Link href="/price"
+          className="flex items-center justify-center gap-2 bg-primary text-white py-[16px] rounded-[18px]
+          text-[15px] font-semibold shadow-[0_8px_24px_rgba(201,169,110,0.25)]
+          active:scale-[0.98] transition-transform w-full">
           Записаться на приём
+          <ArrowRight size={16} strokeWidth={2.5} />
         </Link>
       </section>
 
@@ -211,12 +181,14 @@ export default function HomePage() {
   );
 }
 
-function SectionHeader({ title, link }: { title: string; link?: string }) {
+/* ─── Компоненты ─── */
+
+function SectionTitle({ title, link }: { title: string; link?: string }) {
   return (
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-bold">{title}</h2>
+    <div className="flex items-baseline justify-between mb-0">
+      <h2 className="text-[18px] font-bold">{title}</h2>
       {link && (
-        <Link href={link} className="text-xs text-primary font-medium flex items-center gap-0.5">
+        <Link href={link} className="text-[13px] text-primary font-medium flex items-center gap-0.5">
           Все <ChevronRight size={14} />
         </Link>
       )}
@@ -224,11 +196,23 @@ function SectionHeader({ title, link }: { title: string; link?: string }) {
   );
 }
 
-function SocialButton({ label, href, color }: { label: string; href: string; color: string }) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer"
-      className={`px-4 py-2 rounded-2xl text-xs font-medium ${color} active:scale-95 transition-transform`}>
-      {label}
-    </a>
+function InfoRow({ icon: Icon, label, href }: { icon: React.ElementType; label: string; href?: string }) {
+  const content = (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-[10px] bg-primary/[0.08] flex items-center justify-center flex-shrink-0">
+        <Icon size={16} className="text-primary" />
+      </div>
+      <p className="text-[13px] font-medium">{label}</p>
+    </div>
   );
+  return href ? <a href={href}>{content}</a> : content;
+}
+
+function declension(n: number, forms: [string, string, string]): string {
+  const abs = Math.abs(n) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return forms[2];
+  if (last > 1 && last < 5) return forms[1];
+  if (last === 1) return forms[0];
+  return forms[2];
 }
