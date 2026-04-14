@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { BottomNav } from './BottomNav';
 import {
   Home, CalendarDays, Users, MapPin, LogIn,
-  FileText, User, Banknote,
-  LayoutDashboard, ListChecks, Tag, Settings,
+  FileText, User,
+  LayoutDashboard, ListChecks, Tag, Settings, UserCog,
 } from 'lucide-react';
 
 const publicTabs = [
@@ -24,18 +24,19 @@ const clientTabs = [
   { href: '/client/profile', label: 'Профиль', icon: User },
 ];
 
+// Без кассы
 const staffTabs = [
-  { href: '/staff/schedule', label: 'Расписание', icon: CalendarDays },
+  { href: '/staff/schedule', label: 'Приёмы', icon: CalendarDays },
   { href: '/staff/patients', label: 'Пациенты', icon: Users },
-  { href: '/staff/cash', label: 'Касса', icon: Banknote },
   { href: '/client/profile', label: 'Профиль', icon: User },
 ];
 
 const ownerTabs = [
-  { href: '/owner/dashboard', label: 'Дашборд', icon: LayoutDashboard },
+  { href: '/owner/dashboard', label: 'Главная', icon: LayoutDashboard },
   { href: '/owner/services', label: 'Услуги', icon: ListChecks },
+  { href: '/owner/doctors', label: 'Врачи', icon: UserCog },
   { href: '/owner/promotions', label: 'Акции', icon: Tag },
-  { href: '/owner/settings', label: 'Настройки', icon: Settings },
+  { href: '/owner/settings', label: 'Ещё', icon: Settings },
 ];
 
 export function AppNav() {
@@ -43,9 +44,7 @@ export function AppNav() {
   const [tabs, setTabs] = useState(publicTabs);
 
   useEffect(() => {
-    // На публичных страницах — всегда публичное меню
-    const isPublic = ['/', '/price', '/doctors', '/promos', '/contacts', '/login'].includes(pathname);
-
+    const isPublic = ['/', '/price', '/doctors', '/promos', '/contacts', '/login', '/booking'].includes(pathname);
     const stored = localStorage.getItem('user');
     if (!stored || isPublic) {
       setTabs(publicTabs);

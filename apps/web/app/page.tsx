@@ -175,14 +175,23 @@ export default function HomePage() {
             const initials = parts.map((w: string) => w[0]).join('').slice(0, 2);
             const short = parts[0] + ' ' + (parts[1]?.[0] || '') + '.';
             return (
-              <Link key={s.id as string} href="/doctors" className="flex-shrink-0 w-[144px]">
-                <div className="bg-bg-card rounded-lg shadow-card p-5 text-center
+              <Link key={s.id as string} href="/doctors" className="flex-shrink-0 w-[140px]">
+                <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
                   active:scale-[0.97] transition-transform">
-                  <div className="w-14 h-14 rounded-full bg-brand-light flex items-center justify-center mx-auto mb-3">
-                    <span className="text-[15px] font-extrabold text-brand-dark">{initials}</span>
+                  {/* Вертикальное фото 3:4 */}
+                  <div className="aspect-[3/4] bg-brand-light">
+                    {s.photoPath ? (
+                      <img src={`/api/uploads/${s.photoPath}`} alt={name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[28px] font-extrabold text-brand/25">{initials}</span>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm font-bold truncate">{short}</p>
-                  <p className="text-[11px] text-brand font-semibold mt-1">{s.specialty as string}</p>
+                  <div className="p-3">
+                    <p className="text-[13px] font-bold truncate">{short}</p>
+                    <p className="text-[11px] text-brand font-semibold mt-1 truncate">{s.specialty as string}</p>
+                  </div>
                 </div>
               </Link>
             );

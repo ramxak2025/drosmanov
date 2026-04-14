@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
+import { randomUUID } from 'crypto';
+import { join } from 'path';
+import { writeFile, mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
@@ -7,7 +12,14 @@ import { hashValue } from '../common/utils/crypto.util';
 
 @Injectable()
 export class StaffManagementService {
-  constructor(private prisma: PrismaService) {}
+  private uploadDir: string;
+
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {
+    this.uploadDir = this.config.get<string>('UPLOAD_DIR', '/app/uploads');
+  }
 
   async findAll() {
     return this.prisma.staff.findMany({
@@ -70,6 +82,31 @@ export class StaffManagementService {
     return this.prisma.staff.update({
       where: { id },
       data: staffData,
+      include: { user: true },
+    });
+  }
+
+  async uploadPhoto(id: string, file: Express.Multer.File) {
+    const photosDir = join(this.uploadDir, 'staff');
+    if (!existsSync(photosDir)) await mkdir(photosDir, { recursive: true });
+
+    let storedName: string;
+    try {
+      const sharp = (await import('sharp')).default;
+      storedName = `${randomUUID()}.webp`;
+      // Портретное фото врача — соотношение 3:4
+      await sharp(file.buffer)
+        .resize(600, 800, { fit: 'cover', position: 'top' })
+        .webp({ quality: 85 })
+        .toFile(join(photosDir, storedName));
+    } catch {
+      storedName = `${randomUUID()}.jpg`;
+      await writeFile(join(photosDir, storedName), file.buffer);
+    }
+
+    return this.prisma.staff.update({
+      where: { id },
+      data: { photoPath: `staff/${storedName}` },
       include: { user: true },
     });
   }
