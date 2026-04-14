@@ -1,12 +1,31 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { Star, LogOut, Phone, User, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth, useRequireAuth } from '@/lib/auth';
+import api from '@/lib/api';
 
 export default function ProfilePage() {
   useRequireAuth();
   const { user, logout } = useAuth();
+
+  // Получаем профиль клиента с бонусным балансом
+  const { data: clientData } = useQuery({
+    queryKey: ['my-profile'],
+    queryFn: async () => {
+      // Находим свой клиентский профиль через список записей (в них есть client)
+      const { data } = await api.get('/appointments?limit=1');
+      const apt = data.data.data?.[0];
+      if (!apt) return null;
+      const clientId = apt.clientId;
+      const clientResp = await api.get(`/patients/${clientId}`);
+      return clientResp.data.data;
+    },
+    enabled: user?.role === 'CLIENT',
+  });
+
+  const bonusBalance = clientData?.bonusBalance || 0;
 
   return (
     <div className="px-6 pt-12 pb-8">
@@ -27,21 +46,32 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Bonus */}
-      <div className="bg-bg-card rounded-lg shadow-card p-5 mt-3 flex items-center gap-4">
-        <div className="w-10 h-10 rounded-md bg-brand-subtle flex items-center justify-center">
-          <Star size={18} className="text-brand" />
+      {/* Бонусная программа */}
+      {user?.role === 'CLIENT' && (
+        <div className="relative bg-gradient-to-br from-ink via-ink to-brand-dark rounded-lg p-6 mt-4 overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-brand/20 blur-2xl" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-3">
+              <Star size={14} className="text-brand-muted" />
+              <p className="text-[10px] font-bold text-white/80 tracking-widest uppercase">
+                Бонусный счёт
+              </p>
+            </div>
+            <p className="text-[34px] font-extrabold text-white leading-none">
+              {bonusBalance.toLocaleString('ru')}
+              <span className="text-[16px] font-bold text-white/60 ml-2">₽</span>
+            </p>
+            <p className="text-[12px] text-white/60 mt-3 leading-relaxed">
+              Тратьте бонусы на&nbsp;следующий приём. 1&nbsp;бонус = 1&nbsp;₽
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-[11px] text-ink-tertiary font-medium">Бонусный баланс</p>
-          <p className="text-[17px] font-extrabold mt-0.5">0 баллов</p>
-        </div>
-      </div>
+      )}
 
       {/* Menu */}
       <div className="mt-6 stack-sm">
         <MenuRow label="Мои визиты" href="/client/visits" />
-        <MenuRow label="Мои документы" href="/client/documents" />
+        <MenuRow label="Записаться" href="/client/booking" />
       </div>
 
       {/* Logout */}
@@ -52,7 +82,6 @@ export default function ProfilePage() {
         <span className="text-sm font-semibold">Выйти</span>
       </button>
 
-      {/* Back to site */}
       <Link href="/" className="block text-center text-sm text-ink-tertiary mt-4 font-medium">
         На главную
       </Link>
