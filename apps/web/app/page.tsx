@@ -179,7 +179,7 @@ export default function HomePage() {
                 <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
                   active:scale-[0.97] transition-transform">
                   {/* Вертикальное фото 3:4 */}
-                  <div className="aspect-[3/4] bg-brand-light">
+                  <div className="aspect-portrait bg-brand-light">
                     {s.photoPath ? (
                       <img src={`/api/uploads/${s.photoPath}`} alt={name} className="w-full h-full object-cover" />
                     ) : (

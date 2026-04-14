@@ -39,7 +39,7 @@ export default function DoctorsPage() {
               <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
                 active:scale-[0.97] transition-transform">
                 {/* Вертикальное фото 3:4 */}
-                <div className="aspect-[3/4] bg-brand-light relative">
+                <div className="aspect-portrait bg-brand-light relative">
                   {s.photoPath ? (
                     <img src={`/api/uploads/${s.photoPath}`} alt={name} className="w-full h-full object-cover" />
                   ) : (
@@ -79,7 +79,7 @@ function DoctorModal({ doctor, onClose }: { doctor: Record<string, unknown>; onC
         onClick={(e) => e.stopPropagation()}>
 
         {/* Вертикальное фото */}
-        <div className="aspect-[4/5] bg-brand-light relative">
+        <div className="aspect-tall bg-brand-light relative">
           {doctor.photoPath ? (
             <img src={`/api/uploads/${doctor.photoPath}`} alt={name} className="w-full h-full object-cover" />
           ) : (

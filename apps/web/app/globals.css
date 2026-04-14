@@ -44,4 +44,10 @@
   .stack-md { display: flex; flex-direction: column; gap: 20px; }
   .stack-lg { display: flex; flex-direction: column; gap: 24px; }
   .stack-xl { display: flex; flex-direction: column; gap: 32px; }
+
+  /* ═══ Соотношения сторон для фото (надёжнее aspect-[] arbitrary) ═══ */
+  .aspect-portrait { aspect-ratio: 3 / 4; }
+  .aspect-tall     { aspect-ratio: 4 / 5; }
+  .aspect-wide     { aspect-ratio: 16 / 9; }
+  .aspect-sq       { aspect-ratio: 1 / 1; }
 }
