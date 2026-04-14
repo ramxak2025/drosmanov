@@ -7,13 +7,13 @@ import { ChevronLeft, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 
-const CAT_IMAGES: Record<string, string> = {
-  'Терапия': 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&h=200&fit=crop&q=80',
-  'Хирургия': 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=400&h=200&fit=crop&q=80',
-  'Гигиена': 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=400&h=200&fit=crop&q=80',
-  'Ортодонтия': 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=400&h=200&fit=crop&q=80',
-  'Имплантация': 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=400&h=200&fit=crop&q=80',
-  'Эстетика': 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=400&h=200&fit=crop&q=80',
+const CAT_META: Record<string, { image: string; accent: string }> = {
+  'Терапия':     { image: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&h=400&fit=crop&q=85', accent: 'from-blue-900/70' },
+  'Хирургия':    { image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&h=400&fit=crop&q=85', accent: 'from-red-900/70' },
+  'Гигиена':     { image: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=600&h=400&fit=crop&q=85', accent: 'from-teal-900/70' },
+  'Ортодонтия':  { image: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&h=400&fit=crop&q=85', accent: 'from-purple-900/70' },
+  'Имплантация': { image: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=600&h=400&fit=crop&q=85', accent: 'from-zinc-900/70' },
+  'Эстетика':    { image: 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=600&h=400&fit=crop&q=85', accent: 'from-pink-900/70' },
 };
 
 export default function PricePage() {
@@ -40,42 +40,60 @@ function Content() {
     grouped[cat].push(s);
   });
 
-  // Если категория выбрана — показываем услуги
+  /* ══ Список услуг выбранной категории ══ */
   if (openCat && grouped[openCat]) {
+    const items = grouped[openCat];
+    const meta = CAT_META[openCat];
+
     return (
-      <div className="px-6 pt-12 pb-8">
-        <button onClick={() => setOpenCat(null)}
-          className="flex items-center gap-2 text-sm text-ink-secondary font-medium mb-6">
-          <ChevronLeft size={18} /> Все разделы
-        </button>
+      <div className="pb-8">
+        {/* Hero категории */}
+        <div className="relative h-[200px] overflow-hidden">
+          {meta?.image ? (
+            <img src={meta.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-brand-light" />
+          )}
+          <div className={`absolute inset-0 bg-gradient-to-t ${meta?.accent || 'from-black/70'} via-black/40 to-black/20`} />
 
-        <h1 className="text-h2">{openCat}</h1>
-        <p className="text-[15px] text-ink-secondary mt-2 mb-6">
-          {grouped[openCat].length} {plural(grouped[openCat].length)} — нажмите для записи
-        </p>
+          <button onClick={() => setOpenCat(null)}
+            className="absolute top-6 left-6 w-10 h-10 rounded-full bg-white/15 backdrop-blur-md
+              flex items-center justify-center active:scale-95 transition-transform">
+            <ChevronLeft size={18} className="text-white" />
+          </button>
 
-        <div className="space-y-3">
-          {grouped[openCat].map((s) => (
-            <Link key={s.id as string} href={`/client/booking?serviceId=${s.id}`}>
+          <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
+            <h1 className="text-[28px] font-extrabold text-white tracking-tight">{openCat}</h1>
+            <p className="text-sm text-white/75 mt-1">
+              {items.length} {plural(items.length)} · Нажмите для записи
+            </p>
+          </div>
+        </div>
+
+        {/* Услуги — отступы между карточками */}
+        <div className="px-6 mt-6 space-y-4">
+          {items.map((s) => (
+            <Link key={s.id as string} href={`/booking?serviceId=${s.id}`}>
               <div className="bg-bg-card rounded-lg shadow-card p-5
                 active:scale-[0.98] transition-transform">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <p className="text-[15px] font-bold">{s.name as string}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[16px] font-bold leading-snug">{s.name as string}</p>
                     {s.description && (
-                      <p className="text-sm text-ink-secondary mt-2 leading-relaxed">{s.description as string}</p>
+                      <p className="text-[13px] text-ink-secondary mt-2 leading-relaxed">{s.description as string}</p>
                     )}
-                    <p className="text-sm text-ink-tertiary mt-2 flex items-center gap-1">
-                      <Clock size={13} /> {s.duration as number} мин
+                    <p className="text-[12px] text-ink-tertiary mt-3 flex items-center gap-1.5">
+                      <Clock size={12} /> {s.duration as number} мин
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0 pt-1">
-                    <span className="text-[17px] font-extrabold text-brand">
-                      {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')}\u00A0\u20BD`}
-                    </span>
+                  <div className="text-right flex-shrink-0 pt-1">
+                    <p className="text-[18px] font-extrabold text-brand">
+                      {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')}`}
+                    </p>
+                    {(s.price as number) !== 0 && <p className="text-[11px] text-ink-tertiary">₽</p>}
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-1 mt-3 text-sm text-brand font-semibold">
+                <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-line text-sm text-brand font-bold">
                   Записаться <ArrowRight size={14} />
                 </div>
               </div>
@@ -86,7 +104,7 @@ function Content() {
     );
   }
 
-  // Категории с фотками
+  /* ══ Разделы — модные bento-карточки ══ */
   return (
     <div className="px-6 pt-12 pb-8">
       <h1 className="text-h2">Цены</h1>
@@ -95,23 +113,28 @@ function Content() {
       <div className="space-y-4">
         {Object.keys(grouped).map((cat) => {
           const count = grouped[cat].length;
-          const img = CAT_IMAGES[cat];
+          const meta = CAT_META[cat];
           return (
             <button key={cat} onClick={() => setOpenCat(cat)} className="w-full text-left">
-              <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
+              <div className="relative h-[140px] rounded-lg overflow-hidden shadow-card
                 active:scale-[0.98] transition-transform">
-                {/* Фото раздела */}
-                <div className="h-32 relative">
-                  {img ? (
-                    <img src={img} alt={cat} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-brand-light" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-[17px] font-bold text-white">{cat}</h3>
-                    <p className="text-[13px] text-white/70 mt-0.5">{count} {plural(count)}</p>
-                  </div>
+                {meta?.image ? (
+                  <img src={meta.image} alt={cat} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-brand-light" />
+                )}
+                {/* Двойной градиент для читаемости */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/20" />
+
+                <div className="relative h-full flex flex-col justify-center px-6">
+                  <p className="text-[10px] font-bold text-white/60 tracking-[0.2em] uppercase mb-2">
+                    Раздел
+                  </p>
+                  <h3 className="text-[22px] font-extrabold text-white tracking-tight">{cat}</h3>
+                  <p className="text-[13px] text-white/70 mt-1.5 flex items-center gap-1">
+                    {count} {plural(count)}
+                    <ArrowRight size={14} className="ml-1" />
+                  </p>
                 </div>
               </div>
             </button>
