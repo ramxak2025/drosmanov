@@ -3,12 +3,13 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_API_URL=/api
 RUN npm run build
 
 FROM base AS production

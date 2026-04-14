@@ -130,10 +130,13 @@ export default function VisitsPage() {
 }
 
 function CancelButton({ appointmentId, startTime }: { appointmentId: string; startTime: string }) {
-  const hoursUntil = (new Date(startTime).getTime() - Date.now()) / 3600_000;
-  if (hoursUntil < 24) return <p className="text-xs text-text-secondary">Отмена невозможна менее чем за 24 часа</p>;
-
   const [loading, setLoading] = useState(false);
+  const hoursUntil = (new Date(startTime).getTime() - Date.now()) / 3600_000;
+
+  if (hoursUntil < 24) {
+    return <p className="text-xs text-text-secondary">Отмена невозможна менее чем за 24 часа</p>;
+  }
+
   return (
     <Button variant="outline" size="md" loading={loading} onClick={async () => {
       setLoading(true);
