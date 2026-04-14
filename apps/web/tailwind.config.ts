@@ -1,85 +1,72 @@
 import type { Config } from 'tailwindcss';
 
-/*
- * Design System — Dr. Osmanov
- * 8-point grid | 1 font | 3 colors | strict tokens
- */
-
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
-    /* ── Spacing: 8pt grid ── */
-    spacing: {
-      '0': '0px',
-      '1': '4px',     // half-step (иконки)
-      '2': '8px',     // xs
-      '3': '12px',    // half-step (текст)
-      '4': '16px',    // sm
-      '5': '20px',    // half-step
-      '6': '24px',    // md
-      '8': '32px',    // lg
-      '10': '40px',   // xl
-      '12': '48px',   // 2xl
-      '16': '64px',   // секции
-      '20': '80px',
-      '24': '96px',   // макс между секциями
-    },
-    /* ── Font ── */
     fontFamily: {
-      sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
     },
     fontSize: {
-      /* Body */
-      'sm': ['14px', { lineHeight: '20px' }],
-      'base': ['16px', { lineHeight: '24px' }],
-      'lg': ['18px', { lineHeight: '28px' }],
-      /* Headings */
-      'h3': ['20px', { lineHeight: '28px', fontWeight: '600' }],
-      'h2': ['28px', { lineHeight: '36px', fontWeight: '700' }],
-      'h1': ['40px', { lineHeight: '48px', fontWeight: '800' }],
-      /* Small */
-      'xs': ['12px', { lineHeight: '16px' }],
-      'caption': ['11px', { lineHeight: '14px' }],
+      'xs':      ['11px', { lineHeight: '16px', letterSpacing: '0.02em' }],
+      'caption': ['12px', { lineHeight: '16px', letterSpacing: '0.01em' }],
+      'sm':      ['14px', { lineHeight: '20px' }],
+      'base':    ['15px', { lineHeight: '22px' }],
+      'md':      ['16px', { lineHeight: '24px' }],
+      'lg':      ['17px', { lineHeight: '26px' }],
+      'h3':      ['20px', { lineHeight: '28px', fontWeight: '700' }],
+      'h2':      ['26px', { lineHeight: '32px', fontWeight: '700', letterSpacing: '-0.01em' }],
+      'h1':      ['34px', { lineHeight: '40px', fontWeight: '800', letterSpacing: '-0.02em' }],
     },
     borderRadius: {
       'none': '0',
-      'sm': '8px',
-      'md': '12px',
-      'lg': '16px',
-      'xl': '20px',
+      'sm':   '10px',
+      'md':   '14px',
+      'lg':   '18px',
+      'xl':   '24px',
       'full': '9999px',
     },
     extend: {
-      /* ── Colors: 3 roles ── */
       colors: {
-        primary: {
-          DEFAULT: '#C9A96E',
-          hover: '#B8954F',
-          light: '#F5EFE4',
-          subtle: '#FAF7F2',
+        brand: {
+          DEFAULT: '#B69D74',
+          dark:    '#9A8460',
+          light:   '#EDE6D8',
+          subtle:  '#F8F5F0',
+          muted:   '#D4C5A9',
         },
-        neutral: {
-          0: '#FFFFFF',
-          50: '#FAF8F5',       // page bg
-          100: '#F2EDE6',      // card bg
-          200: '#E0D8CE',      // border
-          400: '#9E9189',      // muted text
-          600: '#7A6A5A',      // secondary text
-          900: '#2C2218',      // primary text
+        ink: {
+          DEFAULT: '#1A1A1A',
+          secondary: '#6B6B6B',
+          tertiary:  '#999999',
+          disabled:  '#C4C4C4',
         },
-        accent: {
-          red: '#D14343',
-          green: '#3D9A5F',
-          blue: '#2A7DE1',
+        bg: {
+          DEFAULT: '#FAFAF8',
+          card:    '#FFFFFF',
+          elevated:'#FFFFFF',
         },
+        line: {
+          DEFAULT: 'rgba(0,0,0,0.06)',
+          strong:  'rgba(0,0,0,0.10)',
+        },
+        status: {
+          red:   '#CF4F4F',
+          green: '#4CAF7D',
+        },
+      },
+      spacing: {
+        '18': '72px',
+        '22': '88px',
       },
       boxShadow: {
-        'card': '0 1px 3px rgba(44,34,24,0.04)',
-        'elevated': '0 4px 16px rgba(44,34,24,0.08)',
-        'button': '0 4px 12px rgba(201,169,110,0.25)',
+        'soft':     '0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03)',
+        'card':     '0 2px 8px rgba(0,0,0,0.04), 0 0px 1px rgba(0,0,0,0.06)',
+        'elevated': '0 4px 20px rgba(0,0,0,0.06), 0 0px 1px rgba(0,0,0,0.04)',
+        'nav':      '0 -1px 0 rgba(0,0,0,0.03), 0 4px 24px rgba(0,0,0,0.08)',
+        'button':   '0 4px 14px rgba(182,157,116,0.30)',
       },
       maxWidth: {
-        'container': '430px',  // mobile-first max
+        'page': '430px',
       },
     },
   },

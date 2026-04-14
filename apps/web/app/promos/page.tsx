@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Calendar } from 'lucide-react';
+import { Calendar, Sparkles } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function PromosPage() {
@@ -11,34 +11,44 @@ export default function PromosPage() {
   });
 
   return (
-    <div className="ds-section pt-8 pb-8">
+    <div className="px-6 pt-10 pb-8">
       <h1 className="text-h2">Акции</h1>
-      <p className="text-base text-neutral-600 mt-2">Специальные предложения</p>
+      <p className="text-base text-ink-secondary mt-2">Специальные предложения</p>
 
-      <div className="space-y-4 mt-8">
-        {(promotions || []).map((p: Record<string, unknown>) => (
-          <div key={p.id as string} className="ds-card p-6 relative">
-            {p.photoPath && (
-              <div className="-mx-6 -mt-6 mb-6 rounded-t-lg overflow-hidden h-40">
-                <img src={`/api/uploads/${p.photoPath}`} alt="" className="w-full h-full object-cover" />
+      {(!promotions || promotions.length === 0) ? (
+        <div className="text-center py-20">
+          <Sparkles size={32} className="text-ink-disabled mx-auto mb-4" />
+          <p className="text-base text-ink-tertiary">Нет активных акций</p>
+        </div>
+      ) : (
+        <div className="mt-8 space-y-4">
+          {promotions.map((p: Record<string, unknown>) => (
+            <div key={p.id as string} className="bg-bg-card rounded-lg shadow-card overflow-hidden">
+              {p.photoPath && (
+                <div className="h-44">
+                  <img src={`/api/uploads/${p.photoPath}`} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="p-6 relative">
+                {p.discount && (
+                  <span className="absolute top-6 right-6 bg-status-red text-white text-sm font-extrabold
+                    px-3 py-1 rounded-sm">
+                    -{p.discount as number}%
+                  </span>
+                )}
+                <h3 className="text-h3 pr-16">{p.title as string}</h3>
+                {p.description && (
+                  <p className="text-base text-ink-secondary mt-3 leading-relaxed">{p.description as string}</p>
+                )}
+                <p className="text-sm text-ink-tertiary mt-4 flex items-center gap-2">
+                  <Calendar size={14} />
+                  до {new Date(p.endDate as string).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                </p>
               </div>
-            )}
-            {p.discount && (
-              <div className="absolute top-4 right-4 bg-accent-red text-neutral-0 text-xs font-bold w-10 h-10 rounded-full flex items-center justify-center">
-                -{p.discount as number}%
-              </div>
-            )}
-            <h3 className="text-h3">{p.title as string}</h3>
-            {p.description && (
-              <p className="text-base text-neutral-600 mt-2">{p.description as string}</p>
-            )}
-            <div className="flex items-center gap-2 mt-4 text-sm text-neutral-400">
-              <Calendar size={14} />
-              до {new Date(p.endDate as string).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -4,9 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Calendar } from 'lucide-react';
 import api from '@/lib/api';
 
-const DAYS: Record<string, string> = {
-  mon: 'Пн', tue: 'Вт', wed: 'Ср', thu: 'Чт', fri: 'Пт', sat: 'Сб', sun: 'Вс',
-};
+const D: Record<string, string> = { mon:'Пн', tue:'Вт', wed:'Ср', thu:'Чт', fri:'Пт', sat:'Сб', sun:'Вс' };
 
 export default function DoctorsPage() {
   const { data: staff } = useQuery({
@@ -15,44 +13,41 @@ export default function DoctorsPage() {
   });
 
   return (
-    <div className="ds-section pt-8 pb-8">
+    <div className="px-6 pt-10 pb-8">
       <h1 className="text-h2">Врачи</h1>
-      <p className="text-base text-neutral-600 mt-2">Опытные специалисты с многолетним стажем</p>
+      <p className="text-base text-ink-secondary mt-2">Опытные специалисты</p>
 
-      <div className="space-y-4 mt-8">
+      <div className="mt-8 space-y-4">
         {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
           const name = (s.user as Record<string, unknown>)?.name as string || '';
           const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);
-          const schedule = s.workSchedule as Record<string, { start: string; end: string } | null> | null;
-          const workDays = schedule
-            ? Object.entries(schedule).filter(([, v]) => v !== null)
-                .map(([d, v]) => ({ d: DAYS[d], t: `${(v as { start: string }).start}–${(v as { end: string }).end}` }))
+          const sched = s.workSchedule as Record<string, { start: string; end: string } | null> | null;
+          const days = sched
+            ? Object.entries(sched).filter(([,v]) => v).map(([k,v]) =>
+                `${D[k]} ${(v as {start:string}).start}–${(v as {end:string}).end}`)
             : [];
 
           return (
-            <div key={s.id as string} className="ds-card p-6">
-              <div className="flex gap-4">
-                {/* Avatar — 64px = 8*8 */}
-                <div className="w-16 h-16 rounded-lg bg-primary-light flex items-center justify-center flex-shrink-0">
-                  <span className="text-lg font-bold text-primary">{initials}</span>
+            <div key={s.id as string} className="bg-bg-card rounded-lg p-6 shadow-card">
+              <div className="flex gap-5">
+                <div className="w-16 h-16 rounded-md bg-brand-light flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg font-extrabold text-brand-dark">{initials}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold">{name}</h3>
-                  <p className="text-sm text-primary font-medium mt-1">{s.specialty as string}</p>
-                  {s.bio && <p className="text-sm text-neutral-600 mt-2">{s.bio as string}</p>}
+                <div>
+                  <h3 className="text-md font-bold">{name}</h3>
+                  <p className="text-sm text-brand font-semibold mt-1">{s.specialty as string}</p>
+                  {s.bio && <p className="text-sm text-ink-secondary mt-3 leading-relaxed">{s.bio as string}</p>}
                 </div>
               </div>
-
-              {workDays.length > 0 && (
-                <div className="mt-6 pt-4 border-t border-neutral-200/50">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Calendar size={14} className="text-neutral-400" />
-                    <p className="text-xs text-neutral-400 font-semibold uppercase tracking-wider">Расписание</p>
-                  </div>
+              {days.length > 0 && (
+                <div className="mt-5 pt-5 border-t border-line">
+                  <p className="text-xs text-ink-tertiary font-bold uppercase tracking-[0.1em] mb-3 flex items-center gap-2">
+                    <Calendar size={12} /> Расписание
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {workDays.map(({ d, t }) => (
-                      <span key={d} className="text-xs bg-primary-light text-primary px-4 py-2 rounded-sm font-medium">
-                        {d} {t}
+                    {days.map((d) => (
+                      <span key={d} className="text-caption bg-brand-subtle text-brand-dark px-3 py-[6px] rounded-sm font-semibold">
+                        {d}
                       </span>
                     ))}
                   </div>
