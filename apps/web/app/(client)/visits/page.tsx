@@ -115,7 +115,7 @@ export default function VisitsPage() {
             <Row label="Дата" value={new Date(selected.startTime as string).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} />
             <Row label="Время" value={`${new Date(selected.startTime as string).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} — ${new Date(selected.endTime as string).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`} />
             <Row label="Статус" value={STATUS_LABELS[selected.status as string]} />
-            {selected.notes && <Row label="Заметки" value={selected.notes as string} />}
+            {selected.notes ? <Row label="Заметки" value={String(selected.notes)} /> : null}
 
             {['PENDING', 'CONFIRMED'].includes(selected.status as string) && (
               <div className="pt-3">
