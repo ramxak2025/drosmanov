@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Delete,
+  Controller, Get, Post, Patch, Delete, Query,
   Body, Param, ParseUUIDPipe,
   UseInterceptors, UploadedFile, BadRequestException,
 } from '@nestjs/common';
@@ -19,7 +19,9 @@ export class StaffManagementController {
 
   @Public()
   @Get()
-  findAll() { return this.service.findAll(); }
+  findAll(@Query('serviceId') serviceId?: string) {
+    return this.service.findAll(serviceId);
+  }
 
   @Get(':id')
   @Roles('STAFF', 'OWNER')

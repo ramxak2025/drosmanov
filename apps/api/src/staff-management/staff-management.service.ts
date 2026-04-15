@@ -21,9 +21,16 @@ export class StaffManagementService {
     this.uploadDir = this.config.get<string>('UPLOAD_DIR', '/app/uploads');
   }
 
-  async findAll() {
+  async findAll(serviceId?: string) {
+    // Если указан serviceId — возвращаем только тех кто оказывает эту услугу
     return this.prisma.staff.findMany({
-      include: { user: true },
+      where: serviceId
+        ? { isActive: true, services: { some: { serviceId } } }
+        : undefined,
+      include: {
+        user: true,
+        services: { select: { serviceId: true } },
+      },
       orderBy: { user: { name: 'asc' } },
     });
   }
@@ -31,7 +38,10 @@ export class StaffManagementService {
   async findOne(id: string) {
     return this.prisma.staff.findUniqueOrThrow({
       where: { id },
-      include: { user: true },
+      include: {
+        user: true,
+        services: { select: { serviceId: true } },
+      },
     });
   }
 
@@ -77,6 +87,16 @@ export class StaffManagementService {
         where: { id: staff.userId },
         data: { name: dto.name },
       });
+    }
+
+    // Обновление списка услуг — заменяем полностью
+    if (Array.isArray(dto.serviceIds)) {
+      await this.prisma.staffService.deleteMany({ where: { staffId: id } });
+      if (dto.serviceIds.length > 0) {
+        await this.prisma.staffService.createMany({
+          data: dto.serviceIds.map((serviceId) => ({ staffId: id, serviceId })),
+        });
+      }
     }
 
     return this.prisma.staff.update({

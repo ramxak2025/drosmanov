@@ -27,7 +27,7 @@ function BookingForm() {
 
   const [step, setStep] = useState<Step>(initServiceId ? 'doctor' : 'service');
   const [serviceId, setServiceId] = useState(initServiceId || '');
-  const [staffId, setStaffId] = useState('');
+  const [staffId, setStaffId] = useState('ANY');
   const [date, setDate] = useState('');
   const [slot, setSlot] = useState<{ start: string; end: string } | null>(null);
   const [name, setName] = useState('');
@@ -42,9 +42,15 @@ function BookingForm() {
     queryKey: ['services'],
     queryFn: async () => { const { data } = await api.get('/services'); return data.data; },
   });
+  // Фильтруем врачей по услуге, чтобы показывать только тех, кто её оказывает
   const { data: staff } = useQuery({
-    queryKey: ['staff'],
-    queryFn: async () => { const { data } = await api.get('/staff'); return data.data; },
+    queryKey: ['staff-by-service', serviceId],
+    queryFn: async () => {
+      const url = serviceId ? `/staff?serviceId=${serviceId}` : '/staff';
+      const { data } = await api.get(url);
+      return data.data;
+    },
+    enabled: !!serviceId,
   });
 
   const service = (services || []).find((s: Record<string, unknown>) => s.id === serviceId);
@@ -216,7 +222,29 @@ function BookingForm() {
         {step === 'doctor' && (
           <>
             <h1 className="text-h2">Выберите врача</h1>
+            <p className="text-[14px] text-ink-secondary mt-2 mb-4">
+              Или оставьте &laquo;Любой врач&raquo; — запишем к&nbsp;специалисту с&nbsp;ближайшим окном
+            </p>
             <div className="mt-6 stack-sm">
+              {/* Первый пункт — Любой врач (по умолчанию) */}
+              <button onClick={() => { setStaffId('ANY'); setTimeout(next, 150); }}
+                className={`w-full text-left bg-bg-card rounded-lg p-4 flex items-center gap-4
+                  transition-all active:scale-[0.98]
+                  ${staffId === 'ANY' ? 'ring-2 ring-brand shadow-soft' : 'shadow-card'}`}>
+                <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
+                  <UserIcon size={22} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold flex items-center gap-2">
+                    Любой свободный врач
+                    <span className="text-[10px] font-bold text-brand bg-brand-subtle px-2 py-[2px] rounded-full">
+                      РЕКОМЕНДУЕМ
+                    </span>
+                  </p>
+                  <p className="text-xs text-ink-tertiary mt-1">Система подберёт врача автоматически</p>
+                </div>
+              </button>
+
               {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
                 const name = (s.user as Record<string, unknown>)?.name as string || '';
                 const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);

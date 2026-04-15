@@ -36,4 +36,8 @@ export class UpdateStaffDto {
   @IsOptional()
   @IsBoolean()
   canManagePromotions?: boolean;
+
+  // Список ID услуг, которые оказывает этот врач
+  @IsOptional()
+  serviceIds?: string[];
 }

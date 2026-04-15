@@ -56,10 +56,11 @@ export function TopNav() {
       { href: '/staff/profile', label: 'Профиль' },
     ],
     OWNER: [
-      { href: '/owner/dashboard', label: 'Дашборд' },
+      { href: '/owner/schedule', label: 'Приёмы' },
       { href: '/owner/services', label: 'Услуги' },
       { href: '/owner/doctors', label: 'Врачи' },
       { href: '/owner/promotions', label: 'Акции' },
+      { href: '/owner/dashboard', label: 'Статистика' },
       { href: '/owner/settings', label: 'Настройки' },
     ],
   };
@@ -77,7 +78,7 @@ export function TopNav() {
     <header className="hidden md:block fixed top-0 left-0 right-0 z-40 bg-bg/85 backdrop-blur-xl border-b border-line">
       <div className="max-w-[1200px] mx-auto px-8 h-16 flex items-center gap-8">
         {/* Логотип */}
-        <Link href={user ? `/${user.role.toLowerCase()}/${user.role === 'OWNER' ? 'dashboard' : user.role === 'STAFF' ? 'schedule' : 'home'}` : '/'}
+        <Link href={user ? `/${user.role.toLowerCase()}/${user.role === 'OWNER' ? 'schedule' : user.role === 'STAFF' ? 'schedule' : 'home'}` : '/'}
           className="flex items-center gap-2.5 flex-shrink-0">
           <div className="w-9 h-9 rounded-md bg-brand-light flex items-center justify-center">
             <span className="text-[13px] font-extrabold text-brand-dark">DO</span>

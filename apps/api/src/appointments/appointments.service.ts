@@ -106,28 +106,53 @@ export class AppointmentsService {
       throw new BadRequestException('Укажите clientId для записи');
     }
 
-    // Check for time conflicts
-    const conflict = await this.prisma.appointment.findFirst({
-      where: {
-        staffId: dto.staffId,
-        status: { notIn: ['CANCELLED', 'NO_SHOW'] },
-        OR: [
-          {
-            startTime: { lt: new Date(dto.endTime) },
-            endTime: { gt: new Date(dto.startTime) },
+    // "Любой врач" — автораспределение: выбираем врача с наименьшим числом записей
+    // который оказывает эту услугу и свободен в этот слот
+    let staffId = dto.staffId;
+    if (staffId === 'ANY' || staffId === 'any') {
+      const candidates = await this.prisma.staff.findMany({
+        where: {
+          isActive: true,
+          services: { some: { serviceId: dto.serviceId } },
+        },
+        include: {
+          _count: { select: { appointments: true } },
+          appointments: {
+            where: {
+              status: { notIn: ['CANCELLED', 'NO_SHOW'] },
+              startTime: { lt: new Date(dto.endTime) },
+              endTime: { gt: new Date(dto.startTime) },
+            },
           },
-        ],
-      },
-    });
-
-    if (conflict) {
-      throw new ConflictException('Выбранное время уже занято');
+        },
+      });
+      const available = candidates.filter((c) => c.appointments.length === 0);
+      if (available.length === 0) {
+        throw new ConflictException('На выбранное время нет свободных врачей');
+      }
+      // Берём с наименьшей общей загрузкой
+      available.sort((a, b) => a._count.appointments - b._count.appointments);
+      staffId = available[0].id;
+    } else {
+      const conflict = await this.prisma.appointment.findFirst({
+        where: {
+          staffId,
+          status: { notIn: ['CANCELLED', 'NO_SHOW'] },
+          OR: [
+            {
+              startTime: { lt: new Date(dto.endTime) },
+              endTime: { gt: new Date(dto.startTime) },
+            },
+          ],
+        },
+      });
+      if (conflict) throw new ConflictException('Выбранное время уже занято');
     }
 
     return this.prisma.appointment.create({
       data: {
         clientId,
-        staffId: dto.staffId,
+        staffId,
         serviceId: dto.serviceId,
         startTime: new Date(dto.startTime),
         endTime: new Date(dto.endTime),
@@ -205,8 +230,27 @@ export class AppointmentsService {
   }
 
   async getAvailableSlots(staffId: string, date: string, serviceId: string) {
-    const staff = await this.prisma.staff.findUniqueOrThrow({ where: { id: staffId } });
     const service = await this.prisma.service.findUniqueOrThrow({ where: { id: serviceId } });
+
+    // "Любой врач" — собираем слоты всех врачей услуги
+    if (staffId === 'ANY' || staffId === 'any') {
+      const doctors = await this.prisma.staff.findMany({
+        where: {
+          isActive: true,
+          services: { some: { serviceId } },
+        },
+      });
+      const all: { start: string; end: string }[] = [];
+      for (const d of doctors) {
+        const s = await this.getAvailableSlots(d.id, date, serviceId);
+        all.push(...s);
+      }
+      // Дедупликация по start
+      const unique = Array.from(new Map(all.map((s) => [s.start, s])).values());
+      return unique.sort((a, b) => a.start.localeCompare(b.start));
+    }
+
+    const staff = await this.prisma.staff.findUniqueOrThrow({ where: { id: staffId } });
 
     const targetDate = new Date(date);
     const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];

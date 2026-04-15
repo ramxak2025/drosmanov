@@ -44,12 +44,12 @@ async function main() {
     create: {
       phone: '+79007654321',
       passwordHash: await hashPassword('staff111'),
-      name: 'Иванова Анна Сергеевна',
+      name: 'Магомедова Асият Магомедовна',
       role: 'STAFF',
       staffProfile: {
         create: {
           specialty: 'Терапевт',
-          bio: 'Стаж 10 лет. Специализация: лечение кариеса, пульпита.',
+          bio: 'Стаж 10 лет. Лечение кариеса, пульпита, эндодонтия.',
           salary: 80000,
           canManageServices: true,
           canManagePromotions: true,
@@ -74,7 +74,7 @@ async function main() {
     create: {
       phone: '+79003334455',
       passwordHash: await hashPassword('staff222'),
-      name: 'Петров Константин Владимирович',
+      name: 'Алиев Зайнудин Расулович',
       role: 'STAFF',
       staffProfile: {
         create: {
@@ -103,7 +103,7 @@ async function main() {
     create: {
       phone: '+79009876543',
       passwordHash: await hashPassword('staff333'),
-      name: 'Сидорова Мария Игоревна',
+      name: 'Гаджиев Мурад Ахмедович',
       role: 'STAFF',
       staffProfile: {
         create: {
@@ -181,6 +181,29 @@ async function main() {
 
   for (const s of services) {
     await prisma.service.create({ data: s });
+  }
+
+  // 5.1 Связь врачей с услугами по специальности
+  const allStaffSvc = await prisma.staff.findMany({ include: { user: true } });
+  const allSvc = await prisma.service.findMany();
+
+  for (const st of allStaffSvc) {
+    const spec = st.specialty.toLowerCase();
+    // Определяем какие категории услуг оказывает врач
+    let cats: string[] = [];
+    if (spec.includes('терапевт')) cats = ['Терапия', 'Гигиена'];
+    else if (spec.includes('хирург')) cats = ['Хирургия', 'Имплантация'];
+    else if (spec.includes('ортодонт')) cats = ['Ортодонтия', 'Эстетика'];
+    else cats = ['Терапия'];
+
+    const matching = allSvc.filter((s) => cats.includes(s.category));
+    for (const svc of matching) {
+      await prisma.staffService.upsert({
+        where: { staffId_serviceId: { staffId: st.id, serviceId: svc.id } },
+        create: { staffId: st.id, serviceId: svc.id },
+        update: {},
+      });
+    }
   }
 
   // 6. Promotions (Акции)
@@ -307,18 +330,15 @@ async function main() {
   console.log('    Телефон: +79001234567');
   console.log('    Пароль:  owner123');
   console.log('');
-  console.log('  СОТРУДНИКИ:');
-  console.log('    Иванова А.С. (Терапевт)');
-  console.log('    Телефон: +79007654321');
-  console.log('    Пароль:  staff111');
+  console.log('  ВРАЧИ:');
+  console.log('    Магомедова А.М. (Терапевт)');
+  console.log('    Телефон: +79007654321 / Пароль: staff111');
   console.log('');
-  console.log('    Петров К.В. (Хирург)');
-  console.log('    Телефон: +79003334455');
-  console.log('    Пароль:  staff222');
+  console.log('    Алиев З.Р. (Хирург)');
+  console.log('    Телефон: +79003334455 / Пароль: staff222');
   console.log('');
-  console.log('    Сидорова М.И. (Ортодонт)');
-  console.log('    Телефон: +79009876543');
-  console.log('    Пароль:  staff333');
+  console.log('    Гаджиев М.А. (Ортодонт)');
+  console.log('    Телефон: +79009876543 / Пароль: staff333');
   console.log('');
   console.log('  ПАЦИЕНТЫ (все пароль: client123):');
   console.log('    +79001111111 — Магомедов Рамазан А.');

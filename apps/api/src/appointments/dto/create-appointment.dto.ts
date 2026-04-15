@@ -5,8 +5,8 @@ export class CreateAppointmentDto {
   @IsUUID()
   clientId?: string;
 
-  @IsUUID()
-  staffId: string;
+  @IsString()
+  staffId: string; // UUID или "ANY" для автораспределения
 
   @IsUUID()
   serviceId: string;

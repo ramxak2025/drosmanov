@@ -22,11 +22,17 @@ export default function OwnerDoctorsPage() {
   const [form, setForm] = useState({
     phone: '', password: '', name: '', specialty: '', bio: '',
     schedule: emptySchedule as Schedule,
+    serviceIds: [] as string[],
   });
 
   const { data: staff } = useQuery({
     queryKey: ['owner-doctors'],
     queryFn: async () => { const { data } = await api.get('/staff'); return data.data; },
+  });
+
+  const { data: services } = useQuery({
+    queryKey: ['all-services'],
+    queryFn: async () => { const { data } = await api.get('/services'); return data.data; },
   });
 
   const save = useMutation({
@@ -36,6 +42,7 @@ export default function OwnerDoctorsPage() {
           specialty: form.specialty,
           bio: form.bio || undefined,
           workSchedule: form.schedule,
+          serviceIds: form.serviceIds,
         };
         if (form.name) body.name = form.name;
         await api.patch(`/staff/${editId}`, body);
@@ -64,11 +71,12 @@ export default function OwnerDoctorsPage() {
 
   const reset = () => {
     setShowForm(false); setEditId(null);
-    setForm({ phone: '', password: '', name: '', specialty: '', bio: '', schedule: emptySchedule });
+    setForm({ phone: '', password: '', name: '', specialty: '', bio: '', schedule: emptySchedule, serviceIds: [] });
   };
 
   const edit = (s: Record<string, unknown>) => {
     setEditId(s.id as string);
+    const svcRel = (s.services as Array<{ serviceId: string }> | undefined) || [];
     setForm({
       phone: (s.user as Record<string, unknown>)?.phone as string || '',
       password: '',
@@ -76,8 +84,18 @@ export default function OwnerDoctorsPage() {
       specialty: s.specialty as string,
       bio: (s.bio as string) || '',
       schedule: (s.workSchedule as Schedule) || emptySchedule,
+      serviceIds: svcRel.map((r) => r.serviceId),
     });
     setShowForm(true);
+  };
+
+  const toggleService = (id: string) => {
+    setForm((f) => ({
+      ...f,
+      serviceIds: f.serviceIds.includes(id)
+        ? f.serviceIds.filter((x) => x !== id)
+        : [...f.serviceIds, id],
+    }));
   };
 
   const toggleDay = (day: string) => {
@@ -119,6 +137,41 @@ export default function OwnerDoctorsPage() {
               className="w-full px-4 py-3 rounded-md bg-bg-card text-[15px] shadow-soft outline-none
                 focus:ring-2 focus:ring-brand/20 resize-none" />
           </div>
+
+          {/* Услуги которые оказывает врач */}
+          {editId && (
+            <div>
+              <label className="text-[12px] text-ink-secondary font-semibold mb-3 block">
+                Какие услуги оказывает врач
+              </label>
+              <p className="text-[11px] text-ink-tertiary mb-3">
+                Пациенты смогут записаться на&nbsp;эти услуги к&nbsp;этому врачу
+              </p>
+              <div className="stack-sm">
+                {(services || []).map((svc: Record<string, unknown>) => {
+                  const checked = form.serviceIds.includes(svc.id as string);
+                  return (
+                    <label key={svc.id as string}
+                      className="bg-bg-card rounded-md shadow-soft p-3 flex items-center gap-3 cursor-pointer active:scale-[0.99]">
+                      <button type="button" onClick={() => toggleService(svc.id as string)}
+                        className={`w-5 h-5 rounded-[5px] border-2 flex items-center justify-center transition-colors flex-shrink-0
+                          ${checked ? 'bg-brand border-brand' : 'bg-white border-line-strong'}`}>
+                        {checked && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                            <path d="M5 12l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                      <div className="flex-1 min-w-0" onClick={() => toggleService(svc.id as string)}>
+                        <p className="text-[13px] font-semibold">{svc.name as string}</p>
+                        <p className="text-[11px] text-ink-tertiary">{svc.category as string}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Расписание */}
           <div>

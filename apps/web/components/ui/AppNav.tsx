@@ -32,10 +32,10 @@ const staffTabs = [
 ];
 
 const ownerTabs = [
-  { href: '/owner/dashboard', label: 'Главная', icon: LayoutDashboard },
+  { href: '/owner/schedule', label: 'Приёмы', icon: CalendarDays },
   { href: '/owner/services', label: 'Услуги', icon: ListChecks },
   { href: '/owner/doctors', label: 'Врачи', icon: UserCog },
-  { href: '/owner/promotions', label: 'Акции', icon: Tag },
+  { href: '/owner/dashboard', label: 'Статистика', icon: LayoutDashboard },
   { href: '/owner/settings', label: 'Ещё', icon: Settings },
 ];
 
