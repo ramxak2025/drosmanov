@@ -37,7 +37,7 @@ export default function ContactsPage() {
       </div>
 
       {/* Контактная информация */}
-      <div className="mt-6 stack">
+      <div className="mt-6 stack md:grid md:grid-cols-2 md:gap-4 md:stack-none">
         <InfoCard icon={MapPin} label="Адрес" value={s?.address || 'г. Махачкала, ул. Ярагского, 45'} />
         <InfoCard icon={Phone} label="Телефон" value={s?.phone || '+7 (8722) 12-34-56'} href={`tel:${(s?.phone || '+78722123456').replace(/\D/g, '')}`} />
         <InfoCard icon={Clock} label="Режим работы" value={s?.workHours || 'Пн–Пт 9:00–19:00 · Сб 10:00–14:00'} />

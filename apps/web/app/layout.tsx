@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Providers } from '@/lib/providers';
 import { AppNav } from '@/components/ui/AppNav';
+import { TopNav } from '@/components/ui/TopNav';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#FAF8F5',
+  themeColor: '#FAFAF8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ru">
       <body>
         <Providers>
+          <TopNav />
           <div className="page">{children}</div>
           <AppNav />
         </Providers>

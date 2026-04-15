@@ -33,12 +33,16 @@ export default function DoctorsPage() {
         </p>
       </div>
 
-      {/* Список карточек (каждая может быть раскрытой или сложенной) */}
-      <div className="px-6 stack">
+      {/* Список карточек: на мобильном stack, на ПК grid 3 колонки */}
+      <div className="px-6 stack md:grid md:grid-cols-3 md:gap-4 md:stack-none">
         {active.map((s: Record<string, unknown>) => {
           const isOpen = openId === s.id;
           if (isOpen) {
-            return <DoctorExpanded key={s.id as string} doctor={s} onClose={() => setOpenId(null)} />;
+            return (
+              <div key={s.id as string} className="md:col-span-3">
+                <DoctorExpanded doctor={s} onClose={() => setOpenId(null)} />
+              </div>
+            );
           }
           return <DoctorCardCompact key={s.id as string} doctor={s} onOpen={() => setOpenId(s.id as string)} />;
         })}
@@ -110,9 +114,9 @@ function DoctorExpanded({ doctor, onClose }: { doctor: Record<string, unknown>; 
     : [];
 
   return (
-    <div className="bg-bg-card rounded-xl shadow-elevated overflow-hidden animate-fade-in">
-      {/* БОЛЬШОЕ вертикальное фото 3:4 */}
-      <div className="aspect-portrait relative bg-ink">
+    <div className="bg-bg-card rounded-xl shadow-elevated overflow-hidden animate-fade-in md:grid md:grid-cols-[40%_60%]">
+      {/* БОЛЬШОЕ вертикальное фото 3:4 — на ПК занимает 40% слева */}
+      <div className="aspect-portrait relative bg-ink md:aspect-auto md:min-h-[500px]">
         {doctor.photoPath ? (
           <img src={`/api/uploads/${doctor.photoPath}`} alt={name}
             className="absolute inset-0 w-full h-full object-cover" />

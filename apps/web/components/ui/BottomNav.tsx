@@ -10,7 +10,7 @@ export function BottomNav({ tabs }: { tabs: Tab[] }) {
   const path = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-[max(10px,env(safe-area-inset-bottom))]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-5 pb-[max(10px,env(safe-area-inset-bottom))]">
       <div className="max-w-page mx-auto">
         <div className="bg-bg-elevated/92 backdrop-blur-2xl rounded-xl shadow-nav
           flex items-center justify-around h-[60px]">

@@ -38,12 +38,23 @@
     min-height: 100dvh;
   }
 
+  /* ═══ Десктоп (≥ 768px): убираем ограничение ширины и отступ для bottom nav ═══ */
+  @media (min-width: 768px) {
+    .page {
+      max-width: 1200px;
+      padding-bottom: 80px;
+      padding-top: 80px; /* под верхний header */
+    }
+  }
+
   /* ═══ Надёжные стеки (flex gap вместо space-y) ═══ */
   .stack-sm { display: flex; flex-direction: column; gap: 12px; }
   .stack    { display: flex; flex-direction: column; gap: 16px; }
   .stack-md { display: flex; flex-direction: column; gap: 20px; }
   .stack-lg { display: flex; flex-direction: column; gap: 24px; }
   .stack-xl { display: flex; flex-direction: column; gap: 32px; }
+  /* Сбрасывает stack — нужно когда на ПК переключаем на grid */
+  .stack-none { display: grid; flex-direction: row; gap: 0; }
 
   /* ═══ Соотношения сторон для фото (надёжнее aspect-[] arbitrary) ═══ */
   .aspect-portrait { aspect-ratio: 3 / 4; }

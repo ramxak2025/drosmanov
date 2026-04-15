@@ -35,7 +35,7 @@ export default function HomePage() {
     <div>
 
       {/* 1️⃣ ═══ HERO ═══ */}
-      <section className="relative h-[460px] overflow-hidden">
+      <section className="relative h-[460px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=700&fit=crop&q=85"
           alt=""
@@ -49,11 +49,11 @@ export default function HomePage() {
             <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
             <span className="text-[11px] font-semibold text-white/90 tracking-wide">Работаем сейчас</span>
           </div>
-          <h1 className="text-[36px] font-extrabold text-white leading-[1.05] tracking-tight">
+          <h1 className="text-[36px] md:text-[56px] font-extrabold text-white leading-[1.05] tracking-tight">
             Красивая улыбка<br />
             <span className="text-brand-muted">без боли</span>
           </h1>
-          <p className="text-[15px] text-white/75 mt-4 leading-relaxed max-w-[300px]">
+          <p className="text-[15px] md:text-[18px] text-white/75 mt-4 md:mt-6 leading-relaxed max-w-[300px] md:max-w-[440px]">
             Современная стоматология в&nbsp;Махачкале. Запись онлайн за&nbsp;2&nbsp;минуты
           </p>
           <div className="flex gap-3 mt-7">
@@ -115,7 +115,7 @@ export default function HomePage() {
             Все <ChevronRight size={15} />
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {cats.slice(0, 6).map((cat) => {
             const n = (services || []).filter((s: Record<string, unknown>) => s.category === cat).length;
             return (
@@ -186,7 +186,7 @@ export default function HomePage() {
           Наши принципы
         </p>
         <h2 className="text-h2 mb-6">Как мы работаем</h2>
-        <div className="stack">
+        <div className="stack md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4 md:stack-none">
           <Principle
             icon={Shield}
             title="Европейский стандарт"
