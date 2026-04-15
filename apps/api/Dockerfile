@@ -1,5 +1,4 @@
-FROM node:20-alpine AS base
-RUN apk add --no-cache openssl
+FROM node:20-bookworm-slim AS base
 WORKDIR /app
 
 FROM base AS deps
