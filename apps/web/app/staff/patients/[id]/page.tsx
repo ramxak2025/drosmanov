@@ -334,20 +334,19 @@ function BookingModal({ clientId, onClose, onSuccess }: {
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end" onClick={onClose}>
-      <div className="w-full max-w-page mx-auto bg-bg rounded-t-xl max-h-[92vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center px-6 pt-6 pb-2">
-          <div className="w-10" />
-          <div className="w-10 h-1 bg-line-strong rounded-full" />
+    <div className="fixed inset-0 z-[60] bg-bg overflow-y-auto">
+      {/* Липкий header с крестиком */}
+      <div className="sticky top-0 z-10 bg-bg/95 backdrop-blur-xl border-b border-line">
+        <div className="max-w-[640px] mx-auto px-6 py-4 flex items-center justify-between">
+          <h2 className="text-h3">Записать пациента</h2>
           <button onClick={onClose}
-            className="w-10 h-10 rounded-full bg-bg-card shadow-soft flex items-center justify-center">
-            <X size={16} />
+            className="w-10 h-10 rounded-full bg-bg-card shadow-soft flex items-center justify-center active:scale-95">
+            <X size={18} />
           </button>
         </div>
+      </div>
 
-        <div className="px-6 pb-8">
-          <h2 className="text-h3 mb-6">Записать пациента</h2>
+      <div className="max-w-[640px] mx-auto px-6 py-6 pb-12">
 
           <div className="stack">
             {/* Услуга */}

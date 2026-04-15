@@ -1,8 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Sparkles, ArrowRight, Gift } from 'lucide-react';
-import Link from 'next/link';
+import { Calendar, Sparkles, Gift } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function PromosPage() {
@@ -37,14 +36,6 @@ export default function PromosPage() {
         </div>
       )}
 
-      {/* CTA */}
-      <div className="px-6 mt-12">
-        <Link href="/price"
-          className="flex items-center justify-center gap-2 bg-brand text-white w-full
-            py-4 rounded-md text-[15px] font-bold shadow-button active:scale-[0.97] transition-transform">
-          Записаться на приём <ArrowRight size={16} />
-        </Link>
-      </div>
     </div>
   );
 }
@@ -54,6 +45,8 @@ function PromoCard({ promo, index }: { promo: Record<string, unknown>; index: nu
   const now = new Date();
   const daysLeft = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
   const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
+  // Бессрочная акция — если endDate дальше 2100 года (или очень далеко)
+  const isPermanent = endDate.getFullYear() >= 2100 || daysLeft > 365 * 5;
 
   return (
     <div className="bg-bg-card rounded-xl shadow-card overflow-hidden">
@@ -110,14 +103,23 @@ function PromoCard({ promo, index }: { promo: Record<string, unknown>; index: nu
           <div className="flex items-center gap-2">
             <Calendar size={14} className="text-ink-tertiary" />
             <div>
-              <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wide">До</p>
-              <p className="text-[12px] font-bold">
-                {endDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
-              </p>
+              {isPermanent ? (
+                <>
+                  <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wide">Срок</p>
+                  <p className="text-[12px] font-bold text-brand">Постоянно действует</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wide">Действует до</p>
+                  <p className="text-[12px] font-bold">
+                    {endDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
-          {daysLeft > 0 && (
+          {!isPermanent && daysLeft > 0 && (
             <div>
               <p className="text-[10px] text-ink-tertiary font-semibold uppercase tracking-wide">Осталось</p>
               <p className={`text-[12px] font-bold ${isExpiringSoon ? 'text-[#D14343]' : 'text-ink'}`}>
@@ -126,13 +128,6 @@ function PromoCard({ promo, index }: { promo: Record<string, unknown>; index: nu
             </div>
           )}
         </div>
-
-        {/* CTA */}
-        <Link href="/price"
-          className="mt-6 flex items-center justify-center gap-2 bg-ink text-white w-full
-            py-3 rounded-md text-[14px] font-bold active:scale-[0.97] transition-transform">
-          Записаться <ArrowRight size={14} />
-        </Link>
       </div>
     </div>
   );

@@ -209,17 +209,20 @@ async function main() {
 
   // 6. Promotions (Акции)
   const now = new Date();
+  // Бессрочные акции = endDate в 2200 году (будет определяться как "Постоянно действует")
+  const FOREVER = new Date(2200, 0, 1);
+
   const promotions = [
     {
       title: 'Бесплатная консультация',
-      description: 'При первом посещении — бесплатная консультация и составление плана лечения для всех новых пациентов.',
+      description: 'Первичная консультация с планом лечения — бесплатно для всех новых пациентов.',
       discount: null,
-      startDate: new Date(now.getFullYear(), now.getMonth(), 1),
-      endDate: new Date(now.getFullYear(), now.getMonth() + 3, 0),
+      startDate: new Date(now.getFullYear(), 0, 1),
+      endDate: FOREVER,
     },
     {
-      title: 'Скидка 20% на чистку зубов',
-      description: 'Профессиональная гигиена полости рта со скидкой 20%. Ультразвук + Air Flow + полировка.',
+      title: 'Скидка 20% на гигиену',
+      description: 'Профессиональная чистка зубов со скидкой 20%. Ультразвук + Air Flow + полировка.',
       discount: 20,
       startDate: new Date(now.getFullYear(), now.getMonth(), 1),
       endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
@@ -228,8 +231,15 @@ async function main() {
       title: 'Семейная скидка 15%',
       description: 'При записи двух и более членов семьи — скидка 15% на все услуги.',
       discount: 15,
-      startDate: new Date(now.getFullYear(), now.getMonth(), 1),
-      endDate: new Date(now.getFullYear(), now.getMonth() + 2, 0),
+      startDate: new Date(now.getFullYear(), 0, 1),
+      endDate: FOREVER,
+    },
+    {
+      title: 'Рассрочка 0%',
+      description: 'Возможность оплаты лечения частями без переплат. Согласование на первичном приёме.',
+      discount: null,
+      startDate: new Date(now.getFullYear(), 0, 1),
+      endDate: FOREVER,
     },
   ];
 

@@ -35,7 +35,7 @@ export default function HomePage() {
     <div>
 
       {/* 1️⃣ ═══ HERO ═══ */}
-      <section className="relative h-[460px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden">
+      <section className="relative h-[380px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=700&fit=crop&q=85"
           alt=""
@@ -43,20 +43,20 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90" />
 
-        <div className="relative h-full flex flex-col justify-end px-6 md:px-14 pb-10 md:pb-14">
+        <div className="relative h-full flex flex-col justify-end px-6 md:px-14 pb-7 md:pb-14">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15
             px-3 py-1.5 rounded-full self-start mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
             <span className="text-[11px] font-semibold text-white/90 tracking-wide">Работаем сейчас</span>
           </div>
-          <h1 className="text-[36px] md:text-[68px] font-extrabold text-white leading-[1.02] tracking-tight">
+          <h1 className="text-[30px] md:text-[68px] font-extrabold text-white leading-[1.05] md:leading-[1.02] tracking-tight">
             Красивая улыбка<br />
             <span className="text-brand-muted">без боли</span>
           </h1>
-          <p className="text-[15px] md:text-[19px] text-white/80 mt-4 md:mt-7 leading-relaxed max-w-[300px] md:max-w-[500px]">
+          <p className="text-[14px] md:text-[19px] text-white/80 mt-3 md:mt-7 leading-relaxed max-w-[300px] md:max-w-[500px]">
             Современная стоматология в&nbsp;Махачкале. Запись онлайн за&nbsp;2&nbsp;минуты
           </p>
-          <div className="flex gap-3 md:gap-4 mt-7 md:mt-10">
+          <div className="flex gap-3 md:gap-4 mt-5 md:mt-10">
             <Link href="/price"
               className="bg-brand hover:bg-brand-dark text-white px-6 md:px-8 py-4 md:py-5 rounded-md
               text-[15px] md:text-[16px] font-bold shadow-button flex items-center gap-2
