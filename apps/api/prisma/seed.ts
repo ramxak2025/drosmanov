@@ -40,7 +40,7 @@ async function main() {
   // Терапевт — пароль: staff111
   await prisma.user.upsert({
     where: { phone: '+79007654321' },
-    update: {},
+    update: { name: 'Магомедова Асият Магомедовна' },
     create: {
       phone: '+79007654321',
       passwordHash: await hashPassword('staff111'),
@@ -70,7 +70,7 @@ async function main() {
   // Хирург — пароль: staff222
   await prisma.user.upsert({
     where: { phone: '+79003334455' },
-    update: {},
+    update: { name: 'Алиев Зайнудин Расулович' },
     create: {
       phone: '+79003334455',
       passwordHash: await hashPassword('staff222'),
@@ -99,7 +99,7 @@ async function main() {
   // Ортодонт — пароль: staff333
   await prisma.user.upsert({
     where: { phone: '+79009876543' },
-    update: {},
+    update: { name: 'Гаджиев Мурад Ахмедович' },
     create: {
       phone: '+79009876543',
       passwordHash: await hashPassword('staff333'),

@@ -7,14 +7,17 @@ import { ChevronLeft, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
 
-const CAT_META: Record<string, { image: string; accent: string }> = {
-  // Нейтральные фото: кабинет, оборудование, инструменты, модели зубов (без людей)
-  'Терапия':     { image: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
-  'Хирургия':    { image: 'https://images.unsplash.com/photo-1609840112990-4265448268d1?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
-  'Гигиена':     { image: 'https://images.unsplash.com/photo-1559757175-7cb036e0d465?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
-  'Ортодонтия':  { image: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
-  'Имплантация': { image: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
-  'Эстетика':    { image: 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+/**
+ * Визуальное представление раздела — цветной градиент + крупный эмодзи/SVG.
+ * Без stock-фото людей. Элегантно, единообразно, гарантированно.
+ */
+const CAT_META: Record<string, { gradient: string; emoji: string }> = {
+  'Терапия':     { gradient: 'from-[#5E8BBA] via-[#4A7399] to-[#2C4F70]', emoji: '🦷' },
+  'Хирургия':    { gradient: 'from-[#A35565] via-[#8B3F4F] to-[#5F2C37]', emoji: '⚕️' },
+  'Гигиена':     { gradient: 'from-[#4FA89B] via-[#358578] to-[#1F5A50]', emoji: '✨' },
+  'Ортодонтия':  { gradient: 'from-[#8C6FBD] via-[#6F54A0] to-[#483976]', emoji: '😁' },
+  'Имплантация': { gradient: 'from-[#5D6872] via-[#414B54] to-[#262E36]', emoji: '🔩' },
+  'Эстетика':    { gradient: 'from-[#D4A374] via-[#B08754] to-[#7A5A38]', emoji: '💎' },
 };
 
 export default function PricePage() {
@@ -48,14 +51,15 @@ function Content() {
 
     return (
       <div className="pb-8">
-        {/* Hero категории */}
-        <div className="relative h-[200px] md:h-[360px] md:rounded-xl md:mx-4 md:mt-4 overflow-hidden">
-          {meta?.image ? (
-            <img src={meta.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-brand-light" />
-          )}
-          <div className={`absolute inset-0 bg-gradient-to-t ${meta?.accent || 'from-black/70'} via-black/40 to-black/20`} />
+        {/* Hero категории — градиент с эмодзи */}
+        <div className={`relative h-[200px] md:h-[360px] md:rounded-xl md:mx-4 md:mt-4 overflow-hidden
+          bg-gradient-to-br ${meta?.gradient || 'from-brand to-brand-dark'}`}>
+          {/* Крупный декоративный эмодзи */}
+          <div className="absolute top-1/2 right-8 md:right-16 -translate-y-1/2 text-[120px] md:text-[200px] opacity-20 select-none">
+            {meta?.emoji || '🦷'}
+          </div>
+          {/* Dark overlay для читаемости текста снизу */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           <button onClick={() => setOpenCat(null)}
             className="absolute top-6 left-6 w-10 h-10 rounded-full bg-white/15 backdrop-blur-md
@@ -124,15 +128,15 @@ function Content() {
           const meta = CAT_META[cat];
           return (
             <button key={cat} onClick={() => setOpenCat(cat)} className="w-full text-left">
-              <div className="relative h-[140px] rounded-lg overflow-hidden shadow-card
-                active:scale-[0.98] transition-transform">
-                {meta?.image ? (
-                  <img src={meta.image} alt={cat} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-brand-light" />
-                )}
-                {/* Двойной градиент для читаемости */}
-                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/20" />
+              <div className={`relative h-[140px] rounded-lg overflow-hidden shadow-card
+                bg-gradient-to-br ${meta?.gradient || 'from-brand to-brand-dark'}
+                active:scale-[0.98] transition-transform`}>
+                {/* Декоративный эмодзи */}
+                <div className="absolute top-1/2 right-4 -translate-y-1/2 text-[72px] opacity-20 select-none">
+                  {meta?.emoji || '🦷'}
+                </div>
+                {/* Dark overlay слева для текста */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
 
                 <div className="relative h-full flex flex-col justify-center px-6">
                   <p className="text-[10px] font-bold text-white/60 tracking-[0.2em] uppercase mb-2">
