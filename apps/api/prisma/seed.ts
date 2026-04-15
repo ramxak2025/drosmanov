@@ -180,7 +180,8 @@ async function main() {
   ];
 
   for (const s of services) {
-    await prisma.service.create({ data: s });
+    const exists = await prisma.service.findFirst({ where: { name: s.name } });
+    if (!exists) await prisma.service.create({ data: s });
   }
 
   // 5.1 Связь врачей с услугами по специальности
@@ -233,7 +234,8 @@ async function main() {
   ];
 
   for (const p of promotions) {
-    await prisma.promotion.create({ data: p });
+    const exists = await prisma.promotion.findFirst({ where: { title: p.title } });
+    if (!exists) await prisma.promotion.create({ data: p });
   }
 
   // Get created entities for appointments
@@ -241,8 +243,9 @@ async function main() {
   const allClients = await prisma.client.findMany();
   const allServices = await prisma.service.findMany();
 
-  // 7. Appointments
-  for (let i = 0; i < 30; i++) {
+  // 7. Appointments — только если их ещё нет (идемпотентность)
+  const existingApts = await prisma.appointment.count();
+  for (let i = 0; i < (existingApts > 0 ? 0 : 30); i++) {
     const isPast = i < 20;
     const daysOffset = isPast ? -(Math.floor(Math.random() * 60) + 1) : Math.floor(Math.random() * 14) + 1;
     const startDate = new Date();
@@ -280,6 +283,9 @@ async function main() {
 
   for (const apt of completedAppointments) {
     const bonusEarned = Math.floor(apt.service.price * 0.05);
+    // Skip если уже есть оплата для этой записи
+    const existing = await prisma.payment.findUnique({ where: { appointmentId: apt.id } });
+    if (existing) continue;
     await prisma.payment.create({
       data: {
         appointmentId: apt.id,
@@ -302,20 +308,24 @@ async function main() {
     { diagnosis: 'Периодонтит 46 зуба', treatment: 'Удаление зуба', teeth: { '46': 'extracted' } },
   ];
 
-  for (const d of diagnoses) {
-    await prisma.medRecord.create({
-      data: {
-        clientId: allClients[Math.floor(Math.random() * allClients.length)].id,
-        staffId: allStaff[Math.floor(Math.random() * allStaff.length)].id,
-        diagnosis: d.diagnosis,
-        treatment: d.treatment,
-        teethMap: d.teeth,
-      },
-    });
+  const existingRecs = await prisma.medRecord.count();
+  if (existingRecs === 0) {
+    for (const d of diagnoses) {
+      await prisma.medRecord.create({
+        data: {
+          clientId: allClients[Math.floor(Math.random() * allClients.length)].id,
+          staffId: allStaff[Math.floor(Math.random() * allStaff.length)].id,
+          diagnosis: d.diagnosis,
+          treatment: d.treatment,
+          teethMap: d.teeth,
+        },
+      });
+    }
   }
 
-  // 10. Audit log samples
-  await prisma.auditLog.create({
+  // 10. Audit log samples (создаём только при первом сидировании)
+  const existingAudit = await prisma.auditLog.count();
+  if (existingAudit === 0) await prisma.auditLog.create({
     data: { userId: owner.id, action: 'POST /api/services', entity: 'services', newValue: { name: 'Лечение кариеса', price: 3000 } },
   });
 
