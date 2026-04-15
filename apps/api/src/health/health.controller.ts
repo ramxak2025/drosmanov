@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { Public } from '../common/decorators/public.decorator';
 
 // BUILD-ID: меняется при каждом деплое для проверки что новая версия в air
-const BUILD_ID = '2026-04-15-dagestan-services-v8';
+const BUILD_ID = '2026-04-15-any-doctor-v9';
 
 @Controller('health')
 export class HealthController {

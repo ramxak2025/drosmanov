@@ -223,7 +223,7 @@ function BookingForm() {
           <>
             <h1 className="text-h2">Выберите врача</h1>
             <p className="text-[14px] text-ink-secondary mt-2 mb-4">
-              Или оставьте &laquo;Любой врач&raquo; — запишем к&nbsp;специалисту с&nbsp;ближайшим окном
+              Или оставьте &laquo;Любой врач&raquo; — запишем к&nbsp;свободному специалисту
             </p>
             <div className="mt-6 stack-sm">
               {/* Первый пункт — Любой врач (по умолчанию) */}
@@ -236,7 +236,7 @@ function BookingForm() {
                 </div>
                 <div>
                   <p className="text-[15px] font-semibold flex items-center gap-2">
-                    Любой свободный врач
+                    Любой врач
                     <span className="text-[10px] font-bold text-brand bg-brand-subtle px-2 py-[2px] rounded-full">
                       РЕКОМЕНДУЕМ
                     </span>

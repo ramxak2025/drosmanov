@@ -8,12 +8,13 @@ import Link from 'next/link';
 import api from '@/lib/api';
 
 const CAT_META: Record<string, { image: string; accent: string }> = {
-  'Терапия':     { image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
-  'Хирургия':    { image: 'https://images.unsplash.com/photo-1606811951341-8d3a93c79eda?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
-  'Гигиена':     { image: 'https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
-  'Ортодонтия':  { image: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
-  'Имплантация': { image: 'https://images.unsplash.com/photo-1628771065518-0d82f1938462?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
-  'Эстетика':    { image: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&h=500&fit=crop&q=85', accent: 'from-black/70' },
+  // Нейтральные фото: кабинет, оборудование, инструменты, модели зубов (без людей)
+  'Терапия':     { image: 'https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+  'Хирургия':    { image: 'https://images.unsplash.com/photo-1609840112990-4265448268d1?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+  'Гигиена':     { image: 'https://images.unsplash.com/photo-1559757175-7cb036e0d465?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+  'Ортодонтия':  { image: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+  'Имплантация': { image: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
+  'Эстетика':    { image: 'https://images.unsplash.com/photo-1606265752439-1f18756aa5fc?w=1200&h=700&fit=crop&q=85', accent: 'from-black/70' },
 };
 
 export default function PricePage() {
