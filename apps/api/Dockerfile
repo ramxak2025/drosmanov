@@ -21,4 +21,5 @@ COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY package.json ./
 RUN mkdir -p /app/uploads
 EXPOSE 3001
-CMD ["node", "dist/main"]
+# Автоматически применяем миграции при старте + запускаем API
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss --skip-generate && node dist/main"]
