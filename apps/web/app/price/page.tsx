@@ -48,7 +48,7 @@ function Content() {
     return (
       <div className="pb-8">
         {/* Hero категории */}
-        <div className="relative h-[200px] overflow-hidden">
+        <div className="relative h-[200px] md:h-[360px] md:rounded-xl md:mx-4 md:mt-4 overflow-hidden">
           {meta?.image ? (
             <img src={meta.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
           ) : (
@@ -62,10 +62,15 @@ function Content() {
             <ChevronLeft size={18} className="text-white" />
           </button>
 
-          <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
-            <h1 className="text-[28px] font-extrabold text-white tracking-tight">{openCat}</h1>
-            <p className="text-sm text-white/75 mt-1">
-              {items.length} {plural(items.length)} · Нажмите для записи
+          <div className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pb-6 md:pb-10">
+            <p className="text-[10px] md:text-[11px] font-bold text-white/70 tracking-[0.2em] uppercase mb-2 md:mb-3">
+              Раздел услуг
+            </p>
+            <h1 className="text-[28px] md:text-[52px] font-extrabold text-white tracking-tight leading-[1.05]">
+              {openCat}
+            </h1>
+            <p className="text-sm md:text-[16px] text-white/75 mt-2 md:mt-4">
+              {items.length} {plural(items.length)} · Нажмите на услугу для записи
             </p>
           </div>
         </div>

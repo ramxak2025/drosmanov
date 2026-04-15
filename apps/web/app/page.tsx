@@ -43,31 +43,48 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90" />
 
-        <div className="relative h-full flex flex-col justify-end px-6 pb-10">
+        <div className="relative h-full flex flex-col justify-end px-6 md:px-14 pb-10 md:pb-14">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15
             px-3 py-1.5 rounded-full self-start mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
             <span className="text-[11px] font-semibold text-white/90 tracking-wide">Работаем сейчас</span>
           </div>
-          <h1 className="text-[36px] md:text-[56px] font-extrabold text-white leading-[1.05] tracking-tight">
+          <h1 className="text-[36px] md:text-[68px] font-extrabold text-white leading-[1.02] tracking-tight">
             Красивая улыбка<br />
             <span className="text-brand-muted">без боли</span>
           </h1>
-          <p className="text-[15px] md:text-[18px] text-white/75 mt-4 md:mt-6 leading-relaxed max-w-[300px] md:max-w-[440px]">
+          <p className="text-[15px] md:text-[19px] text-white/80 mt-4 md:mt-7 leading-relaxed max-w-[300px] md:max-w-[500px]">
             Современная стоматология в&nbsp;Махачкале. Запись онлайн за&nbsp;2&nbsp;минуты
           </p>
-          <div className="flex gap-3 mt-7">
+          <div className="flex gap-3 md:gap-4 mt-7 md:mt-10">
             <Link href="/price"
-              className="bg-brand text-white px-6 py-4 rounded-md text-[15px] font-bold
-              shadow-button flex items-center gap-2 active:scale-[0.97] transition-transform">
+              className="bg-brand hover:bg-brand-dark text-white px-6 md:px-8 py-4 md:py-5 rounded-md
+              text-[15px] md:text-[16px] font-bold shadow-button flex items-center gap-2
+              active:scale-[0.97] transition-all">
               Записаться <ArrowRight size={16} />
             </Link>
             <a href={`tel:${settings?.phone || '+78722123456'}`}
-              className="bg-white/12 backdrop-blur-md text-white px-5 py-4 rounded-md
-              text-[15px] font-semibold border border-white/20
-              active:scale-[0.97] transition-transform flex items-center gap-2">
+              className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-white px-5 md:px-7 py-4 md:py-5 rounded-md
+              text-[15px] md:text-[16px] font-semibold border border-white/20
+              active:scale-[0.97] transition-all flex items-center gap-2">
               <Phone size={16} /> Звонок
             </a>
+          </div>
+
+          {/* Floating stats cards — только ПК */}
+          <div className="hidden md:flex gap-3 mt-12">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-lg px-5 py-3">
+              <p className="text-[24px] font-extrabold text-white">12+</p>
+              <p className="text-[11px] text-white/70 uppercase tracking-wider">лет опыта</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-lg px-5 py-3">
+              <p className="text-[24px] font-extrabold text-white">5 000+</p>
+              <p className="text-[11px] text-white/70 uppercase tracking-wider">пациентов</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl border border-white/15 rounded-lg px-5 py-3">
+              <p className="text-[24px] font-extrabold text-white">4.9 ★</p>
+              <p className="text-[11px] text-white/70 uppercase tracking-wider">Яндекс отзывы</p>
+            </div>
           </div>
         </div>
       </section>
@@ -81,9 +98,9 @@ export default function HomePage() {
               Все <ChevronRight size={15} />
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto px-6 pb-2 scrollbar-hide">
+          <div className="flex md:grid md:grid-cols-4 md:px-0 gap-3 md:gap-5 overflow-x-auto md:overflow-visible px-6 pb-2 scrollbar-hide">
             {promotions.slice(0, 4).map((p: Record<string, unknown>) => (
-              <Link key={p.id as string} href="/promos" className="flex-shrink-0 w-[270px]">
+              <Link key={p.id as string} href="/promos" className="flex-shrink-0 w-[270px] md:w-auto">
                 <div className="bg-gradient-to-br from-brand-light to-brand-subtle rounded-lg p-6 h-full
                   relative border border-brand/10 overflow-hidden">
                   <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-brand/10" />
@@ -140,14 +157,14 @@ export default function HomePage() {
             Все <ChevronRight size={15} />
           </Link>
         </div>
-        <div className="flex gap-3 overflow-x-auto px-6 pb-2 scrollbar-hide">
+        <div className="flex md:grid md:grid-cols-4 md:px-0 gap-3 md:gap-5 overflow-x-auto md:overflow-visible px-6 pb-2 scrollbar-hide">
           {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
             const name = (s.user as Record<string, unknown>)?.name as string || '';
             const parts = name.split(' ');
             const initials = parts.map((w: string) => w[0]).join('').slice(0, 2);
             const short = parts[0] + ' ' + (parts[1]?.[0] || '') + '.';
             return (
-              <Link key={s.id as string} href="/doctors" className="flex-shrink-0 w-[140px]">
+              <Link key={s.id as string} href="/doctors" className="flex-shrink-0 w-[140px] md:w-auto">
                 <div className="bg-bg-card rounded-lg shadow-card overflow-hidden
                   active:scale-[0.97] transition-transform">
                   <div className="aspect-portrait bg-brand-light">

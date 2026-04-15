@@ -13,16 +13,17 @@ export default function ContactsPage() {
   const mapLat = s?.mapLat || 42.9849;
   const mapLng = s?.mapLng || 47.5049;
 
+  // Показываем всегда все соцсети; если URL не задан — ссылка # (владелец заполнит)
   const socials = [
-    { label: 'WhatsApp', url: s?.whatsapp, color: '#25D366', icon: <WhatsAppIcon /> },
-    { label: 'Telegram', url: s?.telegram, color: '#2AABEE', icon: <TelegramIcon /> },
-    { label: 'VK',       url: s?.vk,       color: '#0077FF', icon: <VKIcon /> },
-    { label: 'YouTube',  url: s?.youtube,  color: '#FF0000', icon: <YouTubeIcon /> },
-    { label: 'Instagram*', url: s?.instagram, color: '#E4405F', icon: <InstagramIcon />, meta: true },
-    { label: 'Facebook*',  url: s?.facebook,  color: '#1877F2', icon: <FacebookIcon />, meta: true },
-  ].filter((x) => x.url);
+    { label: 'WhatsApp', url: s?.whatsapp || '#', color: '#25D366', icon: <WhatsAppIcon /> },
+    { label: 'Telegram', url: s?.telegram || '#', color: '#2AABEE', icon: <TelegramIcon /> },
+    { label: 'VK',       url: s?.vk       || '#', color: '#0077FF', icon: <VKIcon /> },
+    { label: 'YouTube',  url: s?.youtube  || '#', color: '#FF0000', icon: <YouTubeIcon /> },
+    { label: 'Instagram*', url: s?.instagram || '#', color: '#E4405F', icon: <InstagramIcon />, meta: true },
+    { label: 'Facebook*',  url: s?.facebook  || '#', color: '#1877F2', icon: <FacebookIcon />, meta: true },
+  ];
 
-  const hasMeta = socials.some((x) => x.meta);
+  const hasMeta = true;
 
   return (
     <div className="px-6 pt-12 pb-8">
