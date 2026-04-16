@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <TopNav />
-          <div className="page">{children}</div>
+          <div className="page bg-bg">{children}</div>
           <AppNav />
         </Providers>
       </body>

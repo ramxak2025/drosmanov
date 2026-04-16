@@ -32,10 +32,10 @@ export default function HomePage() {
   const mapLng = settings?.mapLng || 47.5049;
 
   return (
-    <div className="-mt-[env(safe-area-inset-top,0px)]">
+    <div className="bg-bg">
 
       {/* 1️⃣ ═══ HERO ═══ */}
-      <section className="relative h-[380px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden mb-6 md:mb-8 bg-ink">
+      <section className="relative h-[380px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden bg-ink">
         <img
           src={settings?.heroImagePath ? `/api/uploads/${settings.heroImagePath}` : 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=700&fit=crop&q=85'}
           alt=""

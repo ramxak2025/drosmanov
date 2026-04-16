@@ -69,13 +69,25 @@ function Content() {
   const [openCat, setOpenCat] = useState<string | null>(sp.get('cat') || null);
   const [query, setQuery] = useState('');
 
-  const { data: services } = useQuery({
+  const { data: rawServices } = useQuery({
     queryKey: ['services'],
     queryFn: async () => { const { data } = await api.get('/services'); return data.data; },
   });
 
+  // Дедупликация по ID — на случай если в базе есть дубли
+  const services = useMemo(() => {
+    if (!rawServices) return [];
+    const seen = new Set<string>();
+    return (rawServices as Record<string, unknown>[]).filter((s) => {
+      const id = s.id as string;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [rawServices]);
+
   const grouped: Record<string, Record<string, unknown>[]> = {};
-  (services || []).forEach((s: Record<string, unknown>) => {
+  services.forEach((s) => {
     const cat = s.category as string;
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(s);
@@ -84,7 +96,7 @@ function Content() {
   /** Интеллектуальный поиск с синонимами */
   const searchResults = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q || !services) return null;
+    if (!q || services.length === 0) return null;
 
     // Расширяем запрос синонимами
     const expandedTerms: string[] = [q];
@@ -94,7 +106,7 @@ function Content() {
       }
     }
 
-    return (services as Record<string, unknown>[]).filter((s) => {
+    return services.filter((s) => {
       const name = (s.name as string).toLowerCase();
       const desc = ((s.description as string) || '').toLowerCase();
       const cat = ((s.category as string) || '').toLowerCase();
