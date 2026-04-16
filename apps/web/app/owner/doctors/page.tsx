@@ -128,7 +128,7 @@ export default function OwnerDoctorsPage() {
               <Field label="Пароль" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} placeholder="Минимум 4 символа" />
             </>
           )}
-          <Field label="ФИО" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Иванова Анна Сергеевна" />
+          <Field label="ФИО" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="Гаджиева Патимат Магомедовна" />
           <Field label="Специальность" value={form.specialty} onChange={(v) => setForm({ ...form, specialty: v })} placeholder="Терапевт" />
           <div>
             <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Биография</label>

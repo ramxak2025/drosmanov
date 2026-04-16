@@ -1,11 +1,47 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
-import { ChevronLeft, Clock, ArrowRight } from 'lucide-react';
+import { ChevronLeft, Clock, ArrowRight, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
+
+/**
+ * Синонимы стоматологических услуг — позволяет искать по бытовым словам.
+ * Ключ: синоним → значение: слова, по которым будет поиск в услугах.
+ */
+const SYNONYMS: Record<string, string[]> = {
+  'зуб':         ['кариес', 'пульпит', 'пломб', 'удалени', 'лечени', 'реставрац', 'терапи'],
+  'боль':        ['пульпит', 'удалени', 'лечени', 'анестези', 'обезболивани'],
+  'болит':       ['пульпит', 'удалени', 'лечени', 'анестези'],
+  'дырка':       ['кариес', 'пломб', 'реставрац'],
+  'пломба':      ['кариес', 'пломб', 'реставрац', 'вкладк'],
+  'чистка':      ['гигиен', 'ультразвук', 'air flow', 'снятие', 'полировк', 'профессиональн'],
+  'отбеливание': ['отбелив', 'эстетик', 'виниры'],
+  'выравнивание':['брекет', 'элайнер', 'ортодонт', 'исправлени', 'прикус'],
+  'прикус':      ['брекет', 'элайнер', 'ортодонт'],
+  'брекеты':     ['брекет', 'ортодонт'],
+  'коронка':     ['коронк', 'протез', 'керамик', 'циркони'],
+  'протез':      ['протез', 'коронк', 'съёмн', 'несъёмн'],
+  'имплант':     ['имплант', 'имплантац'],
+  'удаление':    ['удалени', 'хирурги', 'зуб мудрост'],
+  'мудрости':    ['зуб мудрост', 'удалени', 'ретинированн'],
+  'виниры':      ['виниры', 'эстетик', 'реставрац'],
+  'десна':       ['пародонт', 'десн', 'гингивит', 'кровоточ'],
+  'кровоточит':  ['пародонт', 'десн', 'гингивит'],
+  'снимок':      ['рентген', 'снимок', 'КТ', 'панорамн', 'диагностик'],
+  'рентген':     ['рентген', 'снимок', 'КТ', 'ОПТГ'],
+  'осмотр':      ['осмотр', 'консультац', 'диагностик', 'первичн'],
+  'консультация':['консультац', 'осмотр', 'первичн', 'диагностик'],
+  'ребенок':     ['детск', 'молочн', 'герметизац', 'фтор', 'серебрени'],
+  'детский':     ['детск', 'молочн', 'герметизац', 'фтор'],
+  'запах':       ['гигиен', 'чистк', 'пародонт'],
+  'белые':       ['отбелив', 'виниры', 'эстетик'],
+  'красивые':    ['эстетик', 'виниры', 'отбелив', 'реставрац'],
+  'дешево':      ['бесплатн', 'акци', 'скидк'],
+  'недорого':    ['бесплатн', 'акци', 'скидк'],
+};
 
 /**
  * Визуальное представление раздела — цветной градиент + крупный эмодзи/SVG.
@@ -31,6 +67,7 @@ export default function PricePage() {
 function Content() {
   const sp = useSearchParams();
   const [openCat, setOpenCat] = useState<string | null>(sp.get('cat') || null);
+  const [query, setQuery] = useState('');
 
   const { data: services } = useQuery({
     queryKey: ['services'],
@@ -43,6 +80,29 @@ function Content() {
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(s);
   });
+
+  /** Интеллектуальный поиск с синонимами */
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q || !services) return null;
+
+    // Расширяем запрос синонимами
+    const expandedTerms: string[] = [q];
+    for (const [synonym, targets] of Object.entries(SYNONYMS)) {
+      if (q.includes(synonym.toLowerCase()) || synonym.toLowerCase().includes(q)) {
+        expandedTerms.push(...targets);
+      }
+    }
+
+    return (services as Record<string, unknown>[]).filter((s) => {
+      const name = (s.name as string).toLowerCase();
+      const desc = ((s.description as string) || '').toLowerCase();
+      const cat = ((s.category as string) || '').toLowerCase();
+      const haystack = `${name} ${desc} ${cat}`;
+
+      return expandedTerms.some(term => haystack.includes(term.toLowerCase()));
+    });
+  }, [query, services]);
 
   /* ══ Список услуг выбранной категории ══ */
   if (openCat && grouped[openCat]) {
@@ -120,8 +180,77 @@ function Content() {
   return (
     <div className="px-6 pt-12 pb-8">
       <h1 className="text-h2">Цены</h1>
-      <p className="text-[15px] text-ink-secondary mt-2 mb-8">Выберите раздел для записи</p>
+      <p className="text-[15px] text-ink-secondary mt-2 mb-6">Выберите раздел или найдите услугу</p>
 
+      {/* Поиск */}
+      <div className="relative mb-8">
+        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-disabled" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Поиск: кариес, чистка, болит зуб..."
+          className="w-full pl-11 pr-10 py-[14px] rounded-lg bg-bg-card text-[15px] shadow-soft outline-none
+            focus:ring-2 focus:ring-brand/20 placeholder:text-ink-disabled"
+        />
+        {query && (
+          <button onClick={() => setQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-ink-disabled/20
+              flex items-center justify-center active:scale-90">
+            <X size={14} className="text-ink-secondary" />
+          </button>
+        )}
+      </div>
+
+      {/* Результаты поиска */}
+      {searchResults !== null ? (
+        <div>
+          <p className="text-[12px] text-ink-tertiary font-semibold uppercase tracking-wider mb-4">
+            {searchResults.length > 0
+              ? `Найдено ${searchResults.length} ${plural(searchResults.length)}`
+              : 'Ничего не найдено'}
+          </p>
+          {searchResults.length === 0 ? (
+            <div className="text-center py-12">
+              <Search size={32} className="text-ink-disabled mx-auto mb-4" />
+              <p className="text-[15px] text-ink-tertiary">Попробуйте другой запрос</p>
+              <p className="text-[13px] text-ink-disabled mt-1">Например: чистка, кариес, виниры</p>
+            </div>
+          ) : (
+            <div className="stack md:grid md:grid-cols-2 md:gap-4 md:stack-none">
+              {searchResults.map((s) => (
+                <Link key={s.id as string} href={`/booking?serviceId=${s.id}`}>
+                  <div className="bg-bg-card rounded-lg shadow-card p-5 active:scale-[0.98] transition-transform">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-brand tracking-[0.1em] uppercase">{s.category as string}</p>
+                        <p className="text-[16px] font-bold leading-snug mt-1">{s.name as string}</p>
+                        {s.description && (
+                          <p className="text-[13px] text-ink-secondary mt-2 leading-relaxed">{String(s.description)}</p>
+                        )}
+                        <p className="text-[12px] text-ink-tertiary mt-3 flex items-center gap-1.5">
+                          <Clock size={12} /> {s.duration as number} мин
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0 pt-1">
+                        <p className="text-[18px] font-extrabold text-brand whitespace-nowrap">
+                          {(s.price as number) === 0
+                            ? 'бесплатно'
+                            : <>{(s.price as number).toLocaleString('ru')}&nbsp;<span className="text-[14px] text-brand-dark">₽</span></>
+                          }
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-1 mt-4 pt-4 border-t border-line text-sm text-brand font-bold">
+                      Записаться <ArrowRight size={14} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="stack-md md:grid md:grid-cols-3 md:gap-4 md:stack-none">
         {Object.keys(grouped).map((cat) => {
           const count = grouped[cat].length;
@@ -153,6 +282,7 @@ function Content() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

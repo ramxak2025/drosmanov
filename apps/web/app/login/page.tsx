@@ -86,7 +86,7 @@ export default function LoginPage() {
 
           <div className="stack">
             {mode === 'register' && (
-              <Field label="Ваше имя" value={name} onChange={setName} placeholder="Иван Иванов" />
+              <Field label="Ваше имя" value={name} onChange={setName} placeholder="Магомед Магомедов" />
             )}
             <Field label="Телефон" type="tel" value={phone} onChange={(v) => setPhone(fmt(v))} placeholder="+7 (900) 123-45-67" />
             <div className="relative">
