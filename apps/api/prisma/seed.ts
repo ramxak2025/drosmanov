@@ -187,9 +187,17 @@ async function main() {
     } else if (existing.length > 1) {
       // Удаляем дубликаты, оставляем первый
       for (let i = 1; i < existing.length; i++) {
-        await prisma.staffService.deleteMany({ where: { serviceId: existing[i].id } });
-        await prisma.appointment.deleteMany({ where: { serviceId: existing[i].id } });
-        await prisma.service.delete({ where: { id: existing[i].id } });
+        const dupeId = existing[i].id;
+        await prisma.staffService.deleteMany({ where: { serviceId: dupeId } });
+        // Удаляем payments → medRecords → appointments каскадно
+        const dupeApts = await prisma.appointment.findMany({ where: { serviceId: dupeId }, select: { id: true } });
+        const aptIds = dupeApts.map(a => a.id);
+        if (aptIds.length > 0) {
+          await prisma.payment.deleteMany({ where: { appointmentId: { in: aptIds } } });
+          await prisma.medRecord.deleteMany({ where: { clientId: { in: aptIds } } });
+        }
+        await prisma.appointment.deleteMany({ where: { serviceId: dupeId } });
+        await prisma.service.delete({ where: { id: dupeId } });
       }
     }
   }
