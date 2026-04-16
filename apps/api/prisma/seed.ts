@@ -180,26 +180,8 @@ async function main() {
   ];
 
   for (const s of services) {
-    // Находим все услуги с таким названием
-    const existing = await prisma.service.findMany({ where: { name: s.name } });
-    if (existing.length === 0) {
-      await prisma.service.create({ data: s });
-    } else if (existing.length > 1) {
-      // Удаляем дубликаты, оставляем первый
-      for (let i = 1; i < existing.length; i++) {
-        const dupeId = existing[i].id;
-        await prisma.staffService.deleteMany({ where: { serviceId: dupeId } });
-        // Удаляем payments → medRecords → appointments каскадно
-        const dupeApts = await prisma.appointment.findMany({ where: { serviceId: dupeId }, select: { id: true } });
-        const aptIds = dupeApts.map(a => a.id);
-        if (aptIds.length > 0) {
-          await prisma.payment.deleteMany({ where: { appointmentId: { in: aptIds } } });
-          await prisma.medRecord.deleteMany({ where: { clientId: { in: aptIds } } });
-        }
-        await prisma.appointment.deleteMany({ where: { serviceId: dupeId } });
-        await prisma.service.delete({ where: { id: dupeId } });
-      }
-    }
+    const exists = await prisma.service.findFirst({ where: { name: s.name } });
+    if (!exists) await prisma.service.create({ data: s });
   }
 
   // 5.1 Связь врачей с услугами по специальности
