@@ -51,7 +51,7 @@ export default function PatientPage() {
       // Также помечаем визит как завершённый если ещё не завершён
       try {
         await api.patch(`/appointments/${aptId}/status`, { status: 'COMPLETED' });
-      } catch { /* может быть уже завершён */ }
+      } catch (_e) { /* может быть уже завершён */ }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['med-records', id] });
@@ -432,7 +432,6 @@ function BookingModal({ clientId, onClose, onSuccess }: {
               {create.isPending ? 'Запись...' : 'Записать'}
             </button>
           </div>
-        </div>
       </div>
     </div>
   );

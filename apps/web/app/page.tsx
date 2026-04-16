@@ -27,7 +27,7 @@ export default function HomePage() {
     queryFn: async () => { const { data } = await api.get('/settings'); return data.data; },
   });
 
-  const cats = [...new Set((services || []).map((s: Record<string, unknown>) => s.category as string))];
+  const cats = Array.from(new Set((services || []).map((s: Record<string, unknown>) => s.category as string)));
   const mapLat = settings?.mapLat || 42.9849;
   const mapLng = settings?.mapLng || 47.5049;
 
