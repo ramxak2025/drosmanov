@@ -128,14 +128,14 @@ function VisitDetailsModal({ appointment, clientId, onClose }: {
   const docs = (visitRecord?.documents as Record<string, unknown>[]) || [];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end" onClick={onClose}>
-      <div className="w-full max-w-page mx-auto bg-bg rounded-t-xl max-h-[92vh] overflow-y-auto"
+    <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end" onClick={onClose}>
+      <div className="w-full max-w-page mx-auto bg-bg rounded-t-xl max-h-[92vh] overflow-y-auto animate-fade-in"
         onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-center px-6 pt-6 pb-2">
+        <div className="sticky top-0 bg-bg/95 backdrop-blur-xl z-10 flex justify-between items-center px-6 pt-5 pb-3 border-b border-line">
           <div className="w-10" />
           <div className="w-10 h-1 bg-line-strong rounded-full" />
           <button onClick={onClose}
-            className="w-10 h-10 rounded-full bg-bg-card shadow-soft flex items-center justify-center">
+            className="w-10 h-10 rounded-full bg-bg-card shadow-soft flex items-center justify-center active:scale-95">
             <X size={16} />
           </button>
         </div>

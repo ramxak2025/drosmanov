@@ -21,7 +21,8 @@ export default function ClientHome() {
   });
 
   const appointments = data?.data || [];
-  const firstName = user?.name?.split(' ')[0] || 'Пациент';
+  const nameParts = user?.name?.split(' ') || [];
+  const firstName = nameParts[1] || nameParts[0] || 'Пациент';
 
   return (
     <div className="px-6 pt-12 pb-8">

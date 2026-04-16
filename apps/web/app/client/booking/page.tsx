@@ -1,255 +1,318 @@
 'use client';
 
-import { useState, useReducer } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Check } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import {
+  ChevronLeft, Clock, User as UserIcon, CheckCircle2, ArrowRight,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useRequireAuth } from '@/lib/auth';
+import api from '@/lib/api';
 
-type Step = 'service' | 'doctor' | 'date' | 'time' | 'confirm';
+type Step = 'service' | 'doctor' | 'date' | 'time' | 'confirm' | 'done';
 
-interface BookingState {
-  serviceId: string;
-  serviceName: string;
-  servicePrice: number;
-  serviceDuration: number;
-  staffId: string;
-  staffName: string;
-  date: string;
-  slot: { start: string; end: string } | null;
-  notes: string;
-}
-
-type Action =
-  | { type: 'SET_SERVICE'; payload: { id: string; name: string; price: number; duration: number } }
-  | { type: 'SET_STAFF'; payload: { id: string; name: string } }
-  | { type: 'SET_DATE'; payload: string }
-  | { type: 'SET_SLOT'; payload: { start: string; end: string } }
-  | { type: 'SET_NOTES'; payload: string };
-
-function reducer(state: BookingState, action: Action): BookingState {
-  switch (action.type) {
-    case 'SET_SERVICE':
-      return { ...state, serviceId: action.payload.id, serviceName: action.payload.name, servicePrice: action.payload.price, serviceDuration: action.payload.duration };
-    case 'SET_STAFF':
-      return { ...state, staffId: action.payload.id, staffName: action.payload.name };
-    case 'SET_DATE':
-      return { ...state, date: action.payload, slot: null };
-    case 'SET_SLOT':
-      return { ...state, slot: action.payload };
-    case 'SET_NOTES':
-      return { ...state, notes: action.payload };
-    default:
-      return state;
-  }
-}
-
-const initialState: BookingState = {
-  serviceId: '', serviceName: '', servicePrice: 0, serviceDuration: 0,
-  staffId: '', staffName: '', date: '', slot: null, notes: '',
-};
-
-const STEPS: Step[] = ['service', 'doctor', 'date', 'time', 'confirm'];
-
-export default function BookingPage() {
+export default function ClientBookingPage() {
+  useRequireAuth(['CLIENT']);
   const router = useRouter();
+
   const [step, setStep] = useState<Step>('service');
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const [done, setDone] = useState(false);
-  const stepIndex = STEPS.indexOf(step);
+  const [serviceId, setServiceId] = useState('');
+  const [staffId, setStaffId] = useState('ANY');
+  const [date, setDate] = useState('');
+  const [slot, setSlot] = useState<{ start: string; end: string } | null>(null);
+  const [notes, setNotes] = useState('');
 
   const { data: services } = useQuery({
     queryKey: ['services'],
     queryFn: async () => { const { data } = await api.get('/services'); return data.data; },
   });
 
-  const { data: staffList } = useQuery({
-    queryKey: ['staff'],
-    queryFn: async () => { const { data } = await api.get('/staff'); return data.data; },
+  const { data: staff } = useQuery({
+    queryKey: ['staff-by-service', serviceId],
+    queryFn: async () => {
+      const url = serviceId ? `/staff?serviceId=${serviceId}` : '/staff';
+      const { data } = await api.get(url);
+      return data.data;
+    },
+    enabled: !!serviceId,
   });
 
   const { data: slots } = useQuery({
-    queryKey: ['slots', state.staffId, state.date, state.serviceId],
+    queryKey: ['slots', staffId, date, serviceId],
     queryFn: async () => {
       const { data } = await api.get('/appointments/slots', {
-        params: { staffId: state.staffId, date: state.date, serviceId: state.serviceId },
+        params: { staffId, date, serviceId },
       });
-      return data.data;
+      return data.data as { start: string; end: string }[];
     },
-    enabled: !!state.staffId && !!state.date && !!state.serviceId,
+    enabled: !!staffId && !!date && !!serviceId,
   });
+
+  const service = (services || []).find((s: Record<string, unknown>) => s.id === serviceId);
+  const doctor = (staff || []).find((s: Record<string, unknown>) => s.id === staffId);
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const dateObj = new Date(state.date);
-      const [sh, sm] = state.slot!.start.split(':').map(Number);
-      const [eh, em] = state.slot!.end.split(':').map(Number);
+      const dateObj = new Date(date);
+      const [sh, sm] = slot!.start.split(':').map(Number);
+      const [eh, em] = slot!.end.split(':').map(Number);
       const startTime = new Date(dateObj); startTime.setHours(sh, sm, 0, 0);
       const endTime = new Date(dateObj); endTime.setHours(eh, em, 0, 0);
       await api.post('/appointments', {
-        staffId: state.staffId, serviceId: state.serviceId,
-        startTime: startTime.toISOString(), endTime: endTime.toISOString(),
-        notes: state.notes || undefined,
+        staffId, serviceId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        notes: notes || undefined,
       });
     },
-    onSuccess: () => setDone(true),
+    onSuccess: () => setStep('done'),
   });
 
-  const next = () => { if (stepIndex < STEPS.length - 1) setStep(STEPS[stepIndex + 1]); };
-  const back = () => { if (stepIndex > 0) setStep(STEPS[stepIndex - 1]); };
-
-  if (done) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mb-4">
-          <Check size={32} className="text-success" />
-        </motion.div>
-        <h2 className="text-xl font-bold mb-2">Записаны!</h2>
-        <p className="text-text-secondary mb-6">{state.serviceName}, {state.date}, {state.slot?.start}</p>
-        <Button onClick={() => router.push('/client/visits')}>Мои визиты</Button>
-      </div>
-    );
-  }
-
-  // Generate next 14 days
   const dates = Array.from({ length: 14 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i + 1);
     return d.toISOString().split('T')[0];
   });
 
+  const steps: Step[] = ['service', 'doctor', 'date', 'time', 'confirm'];
+  const stepIndex = steps.indexOf(step);
+
+  const next = () => {
+    if (stepIndex < steps.length - 1) setStep(steps[stepIndex + 1]);
+  };
+
+  const back = () => {
+    if (stepIndex > 0) setStep(steps[stepIndex - 1]);
+    else router.back();
+  };
+
+  /* ══ Успех ══ */
+  if (step === 'done') {
+    return (
+      <div className="px-6 pt-20 pb-8">
+        <div className="text-center">
+          <div className="w-20 h-20 rounded-full bg-status-green/15 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 size={40} className="text-status-green" />
+          </div>
+          <h1 className="text-h2">Вы записаны!</h1>
+          <p className="text-[15px] text-ink-secondary mt-3">Мы ждём вас в клинике</p>
+        </div>
+
+        <div className="bg-bg-card rounded-lg shadow-card p-6 mt-8 stack-sm">
+          <SummaryRow label="Услуга" value={service?.name as string || ''} />
+          <SummaryRow label="Врач" value={staffId === 'ANY' ? 'Любой врач' : ((doctor?.user as Record<string, unknown>)?.name as string || '')} />
+          <SummaryRow label="Дата" value={new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} />
+          <SummaryRow label="Время" value={slot?.start || ''} />
+        </div>
+
+        <Link href="/client/visits"
+          className="flex items-center justify-center gap-2 mt-6 bg-brand text-white w-full
+            py-4 rounded-md text-[15px] font-bold shadow-button active:scale-[0.97] transition-transform">
+          Мои визиты <ArrowRight size={16} />
+        </Link>
+
+        <Link href="/client/home"
+          className="block text-center text-sm text-ink-tertiary mt-4 font-medium">
+          На главную
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="pt-2">
-      <div className="flex items-center gap-3 mb-6">
-        {stepIndex > 0 && (
-          <button onClick={back} className="p-1"><ChevronLeft size={24} /></button>
-        )}
-        <h1 className="text-xl font-bold flex-1">Запись на приём</h1>
-        <span className="text-sm text-text-secondary">{stepIndex + 1}/{STEPS.length}</span>
+    <div className="pb-8">
+      {/* Header */}
+      <div className="px-6 pt-6 flex items-center gap-3 mb-2">
+        <button onClick={back}
+          className="w-10 h-10 rounded-full bg-bg-card shadow-soft flex items-center justify-center active:scale-95">
+          <ChevronLeft size={18} />
+        </button>
+        <p className="text-sm text-ink-tertiary font-semibold">
+          Шаг {stepIndex + 1} из 5
+        </p>
       </div>
 
-      {/* Progress dots */}
-      <div className="flex gap-2 mb-6">
-        {STEPS.map((_, i) => (
-          <div key={i} className={`h-1 flex-1 rounded-full ${i <= stepIndex ? 'bg-primary' : 'bg-border'}`} />
-        ))}
+      {/* Progress */}
+      <div className="px-6 mt-4">
+        <div className="flex gap-1.5">
+          {steps.map((_, i) => (
+            <div key={i} className={`h-[3px] flex-1 rounded-full transition-colors
+              ${i <= stepIndex ? 'bg-brand' : 'bg-line-strong'}`} />
+          ))}
+        </div>
       </div>
 
-      <AnimatePresence mode="wait">
+      <div className="px-6 mt-8">
+        {/* ── Услуга ── */}
         {step === 'service' && (
-          <StepWrap key="service">
-            <h2 className="font-semibold mb-3">Выберите услугу</h2>
-            <div className="stack-sm">
-              {services?.map((s: Record<string, unknown>) => (
-                <Card key={s.id as string} onClick={() => { dispatch({ type: 'SET_SERVICE', payload: { id: s.id as string, name: s.name as string, price: s.price as number, duration: s.duration as number } }); next(); }}
-                  className={state.serviceId === s.id ? 'ring-2 ring-primary' : ''}>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">{s.name as string}</p>
-                      <p className="text-sm text-text-secondary">{s.duration as number} мин</p>
-                    </div>
-                    <span className="font-semibold text-primary">{(s.price as number).toLocaleString('ru')} &#8381;</span>
+          <>
+            <h1 className="text-h2">Выберите услугу</h1>
+            <div className="mt-6 stack-sm">
+              {(services || []).map((s: Record<string, unknown>) => (
+                <button key={s.id as string}
+                  onClick={() => { setServiceId(s.id as string); setTimeout(next, 150); }}
+                  className={`w-full text-left bg-bg-card rounded-lg p-4 flex items-center justify-between gap-3
+                    transition-all active:scale-[0.98]
+                    ${serviceId === s.id ? 'ring-2 ring-brand shadow-soft' : 'shadow-card'}`}>
+                  <div>
+                    <p className="text-[15px] font-semibold">{s.name as string}</p>
+                    <p className="text-xs text-ink-tertiary mt-1">{s.duration as number} мин</p>
                   </div>
-                </Card>
+                  <span className="text-[15px] font-extrabold text-brand whitespace-nowrap">
+                    {(s.price as number) === 0 ? 'бесплатно' : `${(s.price as number).toLocaleString('ru')} ₽`}
+                  </span>
+                </button>
               ))}
             </div>
-          </StepWrap>
+          </>
         )}
 
+        {/* ── Врач ── */}
         {step === 'doctor' && (
-          <StepWrap key="doctor">
-            <h2 className="font-semibold mb-3">Выберите врача</h2>
-            <div className="stack-sm">
-              {staffList?.map((s: Record<string, unknown>) => (
-                <Card key={s.id as string} onClick={() => { dispatch({ type: 'SET_STAFF', payload: { id: s.id as string, name: (s.user as Record<string, unknown>)?.name as string } }); next(); }}
-                  className={state.staffId === s.id ? 'ring-2 ring-primary' : ''}>
-                  <p className="font-medium">{(s.user as Record<string, unknown>)?.name as string}</p>
-                  <p className="text-sm text-text-secondary">{s.specialty as string}</p>
-                </Card>
-              ))}
-            </div>
-          </StepWrap>
-        )}
+          <>
+            <h1 className="text-h2">Выберите врача</h1>
+            <p className="text-[14px] text-ink-secondary mt-2 mb-4">
+              Или оставьте &laquo;Любой врач&raquo; — запишем к&nbsp;свободному
+            </p>
+            <div className="mt-6 stack-sm">
+              {/* Любой врач */}
+              <button onClick={() => { setStaffId('ANY'); setTimeout(next, 150); }}
+                className={`w-full text-left bg-bg-card rounded-lg p-4 flex items-center gap-4
+                  transition-all active:scale-[0.98]
+                  ${staffId === 'ANY' ? 'ring-2 ring-brand shadow-soft' : 'shadow-card'}`}>
+                <div className="w-12 h-12 rounded-full bg-brand flex items-center justify-center flex-shrink-0">
+                  <UserIcon size={22} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold flex items-center gap-2">
+                    Любой врач
+                    <span className="text-[10px] font-bold text-brand bg-brand-subtle px-2 py-[2px] rounded-full">
+                      РЕКОМЕНДУЕМ
+                    </span>
+                  </p>
+                  <p className="text-xs text-ink-tertiary mt-1">Подберём свободного специалиста</p>
+                </div>
+              </button>
 
-        {step === 'date' && (
-          <StepWrap key="date">
-            <h2 className="font-semibold mb-3">Выберите дату</h2>
-            <div className="grid grid-cols-3 gap-2">
-              {dates.map((d) => {
-                const dateObj = new Date(d);
+              {(staff || []).filter((s: Record<string, unknown>) => s.isActive).map((s: Record<string, unknown>) => {
+                const name = (s.user as Record<string, unknown>)?.name as string || '';
+                const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2);
                 return (
-                  <Card key={d} onClick={() => { dispatch({ type: 'SET_DATE', payload: d }); next(); }}
-                    className={`text-center py-3 ${state.date === d ? 'ring-2 ring-primary' : ''}`}>
-                    <p className="text-xs text-text-secondary">{dateObj.toLocaleDateString('ru-RU', { weekday: 'short' })}</p>
-                    <p className="font-semibold">{dateObj.getDate()}</p>
-                    <p className="text-xs text-text-secondary">{dateObj.toLocaleDateString('ru-RU', { month: 'short' })}</p>
-                  </Card>
+                  <button key={s.id as string}
+                    onClick={() => { setStaffId(s.id as string); setTimeout(next, 150); }}
+                    className={`w-full text-left bg-bg-card rounded-lg p-4 flex items-center gap-4
+                      transition-all active:scale-[0.98]
+                      ${staffId === s.id ? 'ring-2 ring-brand shadow-soft' : 'shadow-card'}`}>
+                    <div className="w-12 h-12 rounded-full bg-brand-light flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-extrabold text-brand-dark">{initials}</span>
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-semibold">{name}</p>
+                      <p className="text-xs text-brand font-semibold mt-1">{s.specialty as string}</p>
+                    </div>
+                  </button>
                 );
               })}
             </div>
-          </StepWrap>
+          </>
         )}
 
+        {/* ── Дата ── */}
+        {step === 'date' && (
+          <>
+            <h1 className="text-h2">Выберите дату</h1>
+            <div className="mt-6 grid grid-cols-4 gap-2">
+              {dates.map((d) => {
+                const dt = new Date(d);
+                return (
+                  <button key={d} onClick={() => { setDate(d); setTimeout(next, 150); }}
+                    className={`bg-bg-card rounded-md p-3 text-center transition-all active:scale-[0.95]
+                      ${date === d ? 'ring-2 ring-brand shadow-soft' : 'shadow-card'}`}>
+                    <p className="text-[10px] text-ink-tertiary font-semibold uppercase">
+                      {dt.toLocaleDateString('ru-RU', { weekday: 'short' })}
+                    </p>
+                    <p className="text-[18px] font-extrabold mt-1">{dt.getDate()}</p>
+                    <p className="text-[10px] text-ink-tertiary mt-0.5">
+                      {dt.toLocaleDateString('ru-RU', { month: 'short' })}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ── Время ── */}
         {step === 'time' && (
-          <StepWrap key="time">
-            <h2 className="font-semibold mb-3">Выберите время</h2>
-            {!slots || slots.length === 0 ? (
-              <p className="text-text-secondary text-center py-8">Нет доступных слотов на эту дату</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {slots.map((slot: { start: string; end: string }) => (
-                  <Card key={slot.start} onClick={() => { dispatch({ type: 'SET_SLOT', payload: slot }); next(); }}
-                    className={`text-center py-3 ${state.slot?.start === slot.start ? 'ring-2 ring-primary' : ''}`}>
-                    <p className="font-semibold">{slot.start}</p>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </StepWrap>
+          <>
+            <h1 className="text-h2">Выберите время</h1>
+            <div className="mt-6">
+              {!slots || slots.length === 0 ? (
+                <div className="text-center py-16">
+                  <Clock size={32} className="text-ink-disabled mx-auto mb-4" />
+                  <p className="text-sm text-ink-tertiary">Нет свободных слотов</p>
+                  <p className="text-xs text-ink-disabled mt-1">Выберите другую дату</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {slots.map((s) => (
+                    <button key={s.start} onClick={() => { setSlot(s); setTimeout(next, 150); }}
+                      className={`bg-bg-card rounded-md py-3 text-center transition-all active:scale-[0.95]
+                        ${slot?.start === s.start ? 'ring-2 ring-brand shadow-soft bg-brand text-white' : 'shadow-card'}`}>
+                      <p className="text-sm font-extrabold">{s.start}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
+        {/* ── Подтверждение ── */}
         {step === 'confirm' && (
-          <StepWrap key="confirm">
-            <h2 className="font-semibold mb-4">Подтверждение</h2>
-            <Card className="stack-sm mb-4">
-              <Row label="Услуга" value={state.serviceName} />
-              <Row label="Врач" value={state.staffName} />
-              <Row label="Дата" value={new Date(state.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })} />
-              <Row label="Время" value={`${state.slot?.start} — ${state.slot?.end}`} />
-              <Row label="Стоимость" value={`${state.servicePrice.toLocaleString('ru')} \u20BD`} />
-            </Card>
-            <textarea
-              className="w-full p-3 rounded-2xl bg-surface border border-border text-sm resize-none"
-              rows={2}
-              placeholder="Комментарий (необязательно)"
-              value={state.notes}
-              onChange={(e) => dispatch({ type: 'SET_NOTES', payload: e.target.value })}
-            />
-            <Button size="lg" loading={createMutation.isPending} onClick={() => createMutation.mutate()} className="mt-4">
-              Подтвердить запись
-            </Button>
-          </StepWrap>
+          <>
+            <h1 className="text-h2">Подтверждение</h1>
+
+            <div className="bg-bg-card rounded-lg shadow-card p-6 mt-6 stack-sm">
+              <SummaryRow label="Услуга" value={service?.name as string || ''} />
+              <SummaryRow label="Врач" value={staffId === 'ANY' ? 'Любой врач' : ((doctor?.user as Record<string, unknown>)?.name as string || '')} />
+              <SummaryRow label="Дата" value={new Date(date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) + ', ' + (slot?.start || '')} />
+              <SummaryRow label="Стоимость" value={`${(service?.price as number || 0).toLocaleString('ru')} ₽`} bold />
+            </div>
+
+            <div className="mt-6">
+              <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Комментарий (необязательно)</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                placeholder="Что беспокоит?"
+                className="w-full px-4 py-3 rounded-md bg-bg-card text-[15px] shadow-soft outline-none
+                  focus:ring-2 focus:ring-brand/20 resize-none placeholder:text-ink-disabled" />
+            </div>
+
+            {createMutation.isError && (
+              <p className="mt-4 text-[13px] text-status-red font-medium text-center">
+                Ошибка записи. Попробуйте ещё раз.
+              </p>
+            )}
+
+            <button onClick={() => createMutation.mutate()}
+              disabled={createMutation.isPending}
+              className="w-full mt-6 bg-brand text-white py-4 rounded-md text-[15px] font-bold shadow-button
+                active:scale-[0.97] transition-transform disabled:opacity-40 disabled:pointer-events-none
+                flex items-center justify-center gap-2">
+              {createMutation.isPending ? 'Записываем...' : 'Подтвердить запись'}
+            </button>
+          </>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
 
-function StepWrap({ children }: { children: React.ReactNode }) {
+function SummaryRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}>
-      {children}
-    </motion.div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between">
-      <span className="text-text-secondary text-sm">{label}</span>
-      <span className="font-medium text-sm">{value}</span>
+    <div className="flex justify-between gap-3">
+      <span className="text-[13px] text-ink-tertiary">{label}</span>
+      <span className={`text-[14px] text-right ${bold ? 'font-extrabold text-brand' : 'font-semibold'}`}>{value}</span>
     </div>
   );
 }
