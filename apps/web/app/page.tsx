@@ -32,10 +32,10 @@ export default function HomePage() {
   const mapLng = settings?.mapLng || 47.5049;
 
   return (
-    <div>
+    <div className="-mt-[env(safe-area-inset-top,0px)]">
 
       {/* 1️⃣ ═══ HERO ═══ */}
-      <section className="relative h-[380px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden mb-6 md:mb-8">
+      <section className="relative h-[380px] md:h-[560px] md:rounded-xl md:overflow-hidden md:mx-4 md:mt-0 overflow-hidden mb-6 md:mb-8 bg-ink">
         <img
           src={settings?.heroImagePath ? `/api/uploads/${settings.heroImagePath}` : 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=700&fit=crop&q=85'}
           alt=""
@@ -43,7 +43,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/90" />
 
-        <div className="relative h-full flex flex-col justify-center px-6 md:px-14 pt-6 md:pt-0">
+        <div className="relative h-full flex flex-col justify-center px-6 md:px-14 pt-[max(16px,env(safe-area-inset-top,16px))] md:pt-0">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/15
             px-3 py-1.5 rounded-full self-start mb-5">
             <span className="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse" />
