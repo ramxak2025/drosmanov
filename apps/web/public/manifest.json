@@ -4,8 +4,8 @@
   "description": "Стоматологическая клиника Dr. Osmanov",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAF8F5",
-  "theme_color": "#C9A96E",
+  "background_color": "#1A1A1A",
+  "theme_color": "#1A1A1A",
   "orientation": "portrait",
   "lang": "ru",
   "icons": [

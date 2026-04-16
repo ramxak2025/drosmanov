@@ -47,6 +47,12 @@
     }
   }
 
+  /* Hero — заходит под статус-бар на мобильных */
+  .hero-section {
+    height: calc(380px + env(safe-area-inset-top, 0px));
+    margin-top: calc(-1 * env(safe-area-inset-top, 0px));
+  }
+
   /* ═══ Надёжные стеки (flex gap вместо space-y) ═══ */
   .stack-sm { display: flex; flex-direction: column; gap: 12px; }
   .stack    { display: flex; flex-direction: column; gap: 16px; }
