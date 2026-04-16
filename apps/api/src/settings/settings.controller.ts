@@ -1,4 +1,9 @@
-import { Controller, Get, Patch, Body, Query } from '@nestjs/common';
+import {
+  Controller, Get, Patch, Post, Body, Query,
+  UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -18,6 +23,21 @@ export class SettingsController {
   @Roles('OWNER')
   update(@Body() dto: UpdateSettingsDto) {
     return this.service.update(dto);
+  }
+
+  @Post('hero')
+  @Roles('OWNER')
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  uploadHero(
+    @UploadedFile(new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }),
+        new FileTypeValidator({ fileType: '.(jpg|jpeg|png|webp)' }),
+      ],
+    }))
+    file: Express.Multer.File,
+  ) {
+    return this.service.uploadHero(file);
   }
 }
 

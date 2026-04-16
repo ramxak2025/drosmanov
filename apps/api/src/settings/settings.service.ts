@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
+import { join } from 'path';
+import { mkdir, writeFile } from 'fs/promises';
+import { randomUUID } from 'crypto';
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR || '/app/uploads';
 
 @Injectable()
 export class SettingsService {
@@ -20,6 +25,33 @@ export class SettingsService {
       create: { id: 'singleton', ...dto },
       update: dto,
     });
+  }
+
+  async uploadHero(file: Express.Multer.File) {
+    const photosDir = join(UPLOAD_DIR, 'settings');
+    await mkdir(photosDir, { recursive: true });
+
+    let storedName: string;
+    try {
+      const sharp = (await import('sharp')).default;
+      storedName = `${randomUUID()}.webp`;
+      await sharp(file.buffer)
+        .resize(1600, 900, { fit: 'cover' })
+        .webp({ quality: 82 })
+        .toFile(join(photosDir, storedName));
+    } catch (_e) {
+      storedName = `${randomUUID()}.jpg`;
+      await writeFile(join(photosDir, storedName), file.buffer);
+    }
+
+    const heroImagePath = `settings/${storedName}`;
+    await this.prisma.clinicSettings.upsert({
+      where: { id: 'singleton' },
+      create: { id: 'singleton', heroImagePath },
+      update: { heroImagePath },
+    });
+
+    return { heroImagePath };
   }
 
   async getAuditLogs(query: {

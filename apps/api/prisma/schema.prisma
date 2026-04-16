@@ -373,5 +373,6 @@ model ClinicSettings {
   facebook        String   @default("")
   bonusPercent    Float    @default(5)
   ownerTelegramId String?
+  heroImagePath   String?
   updatedAt       DateTime @updatedAt
 }

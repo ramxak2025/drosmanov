@@ -76,6 +76,33 @@ export default function OwnerServicesPage() {
         <h1 className="text-h2">{editId ? 'Редактировать услугу' : 'Новая услуга'}</h1>
 
         <div className="mt-8 stack">
+          {/* Фото услуги */}
+          {editId && (
+            <div>
+              <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Фото услуги</label>
+              <label className="relative block h-[120px] rounded-lg overflow-hidden cursor-pointer
+                active:scale-[0.99] transition-transform border-2 border-dashed border-line hover:border-brand/40">
+                {(() => {
+                  const svc = (services || []).find((s: Record<string, unknown>) => s.id === editId);
+                  return svc?.photoPath ? (
+                    <img src={`/api/uploads/${svc.photoPath}`} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 bg-bg-card flex flex-col items-center justify-center gap-2">
+                      <Camera size={24} className="text-ink-disabled" />
+                      <p className="text-[12px] text-ink-tertiary">Нажмите для загрузки (800×600, WebP)</p>
+                    </div>
+                  );
+                })()}
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f && editId) uploadPhoto.mutate({ id: editId, file: f });
+                  }} />
+              </label>
+              {uploadPhoto.isPending && <p className="text-[12px] text-brand font-semibold mt-1">Загрузка...</p>}
+            </div>
+          )}
+
           <Field label="Название" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
           <Field label="Описание" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div className="grid grid-cols-2 gap-3">

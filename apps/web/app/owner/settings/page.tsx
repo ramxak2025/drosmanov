@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { LogOut, Building2, Users, Check, Phone as PhoneIcon, Share2 } from 'lucide-react';
+import { LogOut, Building2, Users, Check, Phone as PhoneIcon, Share2, Camera, ImageIcon } from 'lucide-react';
 import { useAuth, useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
@@ -82,8 +82,46 @@ function ClinicTab() {
     },
   });
 
+  const uploadHero = useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      await api.post('/settings/hero', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
+  });
+
   return (
     <div className="stack">
+      {/* Hero картинка */}
+      <div>
+        <label className="text-[12px] text-ink-secondary font-semibold mb-2 block">Фото для главной (Hero)</label>
+        <label className="relative block h-[160px] rounded-lg overflow-hidden cursor-pointer
+          active:scale-[0.99] transition-transform border-2 border-dashed border-line hover:border-brand/40">
+          {data?.heroImagePath ? (
+            <img src={`/api/uploads/${data.heroImagePath}`} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-bg-card flex flex-col items-center justify-center gap-2">
+              <ImageIcon size={32} className="text-ink-disabled" />
+              <p className="text-[13px] text-ink-tertiary font-semibold">Нажмите для загрузки</p>
+              <p className="text-[11px] text-ink-disabled">1600×900, до 10 МБ</p>
+            </div>
+          )}
+          {data?.heroImagePath && (
+            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="bg-white/90 px-4 py-2 rounded-md flex items-center gap-2">
+                <Camera size={14} className="text-ink" />
+                <span className="text-[13px] font-semibold text-ink">Заменить</span>
+              </div>
+            </div>
+          )}
+          <input type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadHero.mutate(f); }} />
+        </label>
+        {uploadHero.isPending && <p className="text-[12px] text-brand font-semibold mt-2">Загрузка...</p>}
+        <p className="text-[11px] text-ink-tertiary mt-1.5">Автоматически конвертируется в WebP (1600×900)</p>
+      </div>
+
       <Field label="Название клиники" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
       <Field label="% бонусов (на будущее)" type="number" value={String(form.bonusPercent)} onChange={(v) => setForm({ ...form, bonusPercent: Number(v) })} />
       <Field label="Telegram Chat ID владельца" value={form.ownerTelegramId} onChange={(v) => setForm({ ...form, ownerTelegramId: v })} hint="Для получения уведомлений" />

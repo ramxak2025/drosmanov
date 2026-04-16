@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Clock, Calendar, FileText, Download, X } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Clock, Calendar, FileText, Download, X, XCircle } from 'lucide-react';
 import { useAuth, useRequireAuth } from '@/lib/auth';
 import api from '@/lib/api';
 
@@ -107,6 +107,22 @@ function VisitDetailsModal({ appointment, clientId, onClose }: {
   clientId: string;
   onClose: () => void;
 }) {
+  const qc = useQueryClient();
+  const [cancelError, setCancelError] = useState('');
+
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/appointments/${appointment.id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['visits'] });
+      onClose();
+    },
+    onError: (e: unknown) => {
+      setCancelError((e as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Ошибка отмены');
+    },
+  });
+
   // Медицинские записи по клиенту
   const { data: records } = useQuery({
     queryKey: ['med-records', clientId],
@@ -210,6 +226,27 @@ function VisitDetailsModal({ appointment, clientId, onClose }: {
             <div className="bg-bg-card rounded-lg shadow-card p-6 mt-8 text-center">
               <FileText size={28} className="text-ink-disabled mx-auto mb-3" />
               <p className="text-sm text-ink-tertiary">Заключение врача пока не добавлено</p>
+            </div>
+          )}
+
+          {/* Кнопка отмены — только для предстоящих записей */}
+          {['PENDING', 'CONFIRMED'].includes(appointment.status as string) && (
+            <div className="mt-8 pt-6 border-t border-line">
+              {cancelError && (
+                <p className="text-[13px] text-status-red font-medium text-center mb-3">{cancelError}</p>
+              )}
+              <button
+                onClick={() => {
+                  if (confirm('Вы уверены, что хотите отменить запись?')) cancelMutation.mutate();
+                }}
+                disabled={cancelMutation.isPending}
+                className="w-full bg-status-red/10 text-status-red py-3 rounded-md text-[14px] font-semibold
+                  active:scale-[0.97] transition-transform disabled:opacity-40
+                  flex items-center justify-center gap-2">
+                <XCircle size={16} />
+                {cancelMutation.isPending ? 'Отменяем...' : 'Отменить запись'}
+              </button>
+              <p className="text-[11px] text-ink-tertiary text-center mt-2">Отмена возможна за 24 часа до приёма</p>
             </div>
           )}
         </div>
