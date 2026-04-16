@@ -27,7 +27,7 @@ async function main() {
   // 2. Owner — пароль: owner123
   const owner = await prisma.user.upsert({
     where: { phone: '+79001234567' },
-    update: {},
+    update: { name: 'Османов Рамазан Магомедович' },
     create: {
       phone: '+79001234567',
       passwordHash: await hashPassword('owner123'),
@@ -143,7 +143,7 @@ async function main() {
   for (const c of clientPhones) {
     await prisma.user.upsert({
       where: { phone: c.phone },
-      update: {},
+      update: { name: c.name },
       create: {
         phone: c.phone,
         passwordHash: clientPasswordHash,
